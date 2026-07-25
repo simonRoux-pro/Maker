@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "Maker",
+    "slug": "Maker",
+    "scheme": "maker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.maker.engagement",
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "Maker synchronise les évènements politiques (réunions, permanences, meetings) avec ton agenda pour ne rien manquer.",
+        "NSContactsUsageDescription": "Maker t'aide à organiser ton réseau de contacts politiques (mentors, élus, militants) que tu ajoutes toi-même.",
+        "NSUserNotificationsUsageDescription": "Maker t'envoie des rappels d'actions et des messages de motivation pour avancer sur ton engagement politique."
+      }
+    },
+    "android": {
+      "package": "com.maker.engagement",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1B33",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "POST_NOTIFICATIONS"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0B1B33"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Maker synchronise les évènements politiques avec ton agenda."
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Maker t'aide à organiser ton réseau de contacts politiques."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
