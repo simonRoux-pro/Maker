@@ -1,0 +1,1050 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maker</title>
+<style>
+  :root {
+    --bg: #10151f;
+    --surface: #171e2c;
+    --surface-2: #1f2840;
+    --border: #2b3550;
+    --text: #edf0f6;
+    --text-muted: #8e97ae;
+    --accent: #c89b3c;
+    --accent-ink: #10151f;
+    --success: #4c9a73;
+    --danger: #c1584a;
+
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f1f3f7;
+    --surface: #ffffff;
+    --surface-2: #e8ecf2;
+    --border: #d7dee8;
+    --text: #161c29;
+    --text-muted: #5b6478;
+    --accent: #a87a22;
+    --accent-ink: #fff8ea;
+    --success: #2f7a54;
+    --danger: #a8422f;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f1f3f7;
+      --surface: #ffffff;
+      --surface-2: #e8ecf2;
+      --border: #d7dee8;
+      --text: #161c29;
+      --text-muted: #5b6478;
+      --accent: #a87a22;
+      --accent-ink: #fff8ea;
+      --success: #2f7a54;
+      --danger: #a8422f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+  }
+  #shell {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg);
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  h1 { font-size: 1.6rem; font-weight: 600; }
+  h2 { font-size: 1.2rem; font-weight: 600; }
+  h3 { font-size: 1.05rem; font-weight: 600; }
+  p { margin: 0; line-height: 1.5; max-width: 34em; }
+  .muted { color: var(--text-muted); }
+  .small { font-size: 0.82rem; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  button, input, textarea { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card.tappable { cursor: pointer; }
+  .card.tappable:active { background: var(--surface-2); }
+  .card.current { border-left: 3px solid var(--accent); }
+
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row.between { justify-content: space-between; }
+  .row.wrap { flex-wrap: wrap; }
+  .stack { display: flex; flex-direction: column; gap: 6px; }
+  .stack-lg { display: flex; flex-direction: column; gap: 16px; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill.accent { background: var(--accent); color: var(--accent-ink); }
+  .pill.success { background: var(--success); color: #08150f; }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-block { width: 100%; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field input, .field textarea {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+  .field textarea { min-height: 72px; resize: vertical; }
+
+  .choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choice {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .choice.selected { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 18%, var(--surface-2)); }
+
+  .checkbox {
+    width: 22px; height: 22px; min-width: 22px;
+    border-radius: 5px;
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .checkbox.done { background: var(--success); border-color: var(--success); }
+  .checkbox svg { display: none; width: 13px; height: 13px; }
+  .checkbox.done svg { display: block; }
+
+  a.link-reset { text-decoration: none; color: inherit; }
+
+  header.view-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 4px;
+  }
+  header.view-header .back-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+  }
+  .icon-btn {
+    background: none; border: none; padding: 4px; display: flex; color: var(--text);
+  }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  nav#tabbar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  nav#tabbar button {
+    flex: 1;
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+  nav#tabbar button svg { width: 22px; height: 22px; }
+  nav#tabbar button.active { color: var(--accent); }
+
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 90px;
+    transform: translate(-50%, 12px);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    max-width: 90%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 50;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: color-mix(in srgb, black 55%, transparent);
+    display: flex; align-items: flex-end;
+    z-index: 40;
+  }
+  .modal-sheet {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-radius: 16px 16px 0 0;
+    max-height: 88dvh;
+    overflow-y: auto;
+    padding: 18px 16px calc(24px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div id="shell">
+  <div id="main"></div>
+  <nav id="tabbar"></nav>
+  <div id="toast"></div>
+  <div id="modal-root"></div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- content data ---------- */
+
+const STAGES = [
+  {
+    id: "engagement", order: 1, title: "S'engager et se former", timeframe: "0 à 6 mois",
+    summary: "Avant de militer, comprends le terrain : institutions, familles politiques, enjeux locaux. C'est la base sur laquelle tout le reste se construit.",
+    actions: [
+      { id: "eng-1", label: "Choisir un parti ou mouvement aligné avec tes valeurs", detail: "Rencontre plusieurs sections locales avant de trancher. Assiste à une réunion publique de chaque mouvement qui t'intéresse à Saint-Étienne ou à Lyon. L'alignement idéologique compte moins que la qualité du collectif local — c'est avec ces gens que tu vas travailler pendant des années." },
+      { id: "eng-2", label: "Adhérer officiellement", detail: "L'adhésion (souvent 20 à 40€/an) te donne accès aux réunions internes, aux votes de motions et, plus tard, à l'investiture. Sans carte, pas de légitimité interne." },
+      { id: "eng-3", label: "Se former aux institutions", detail: "Comprends le rôle du conseil municipal, du conseil métropolitain (Saint-Étienne Métropole ou Métropole de Lyon), du conseil départemental et de l'Assemblée nationale. Le site vie-publique.fr et les MOOC de Sciences Po sont de bons points de départ." },
+      { id: "eng-4", label: "Cartographier les enjeux locaux", detail: "Lis la presse locale, suis les comptes-rendus de conseil municipal. Identifie 3 sujets sur lesquels tu peux devenir une référence." },
+    ],
+  },
+  {
+    id: "implantation-locale", order: 2, title: "S'implanter localement", timeframe: "6 à 18 mois",
+    summary: "La politique est un métier de présence. Ta légitimité se construit sur le terrain, pas sur les réseaux sociaux.",
+    actions: [
+      { id: "impl-1", label: "Militer concrètement", detail: "Tractage, porte-à-porte, tenue de stands, organisation de réunions publiques. Vise une régularité (ex. un week-end sur deux) plutôt qu'un engagement ponctuel intense." },
+      { id: "impl-2", label: "Rejoindre ou créer une association de quartier", detail: "Conseil de quartier, association de riverains, club sportif, association culturelle : c'est souvent là que se construit la crédibilité locale, en dehors du seul cadre partisan." },
+      { id: "impl-3", label: "Se rendre utile sur un sujet technique", detail: "En tant qu'ingénieur informatique, tu as une expertise rare en politique locale : numérique, données publiques, cybersécurité, transformation digitale des services. Propose-toi comme référent sur ces sujets en interne." },
+      { id: "impl-4", label: "Construire une présence publique cohérente", detail: "Un compte professionnel clair où tu documentes ton engagement. La cohérence dans la durée compte plus que la viralité ponctuelle." },
+    ],
+  },
+  {
+    id: "responsabilites", order: 3, title: "Prendre des responsabilités internes", timeframe: "1 à 3 ans",
+    summary: "Avant d'être candidat, deviens quelqu'un sur qui le parti peut s'appuyer : organisation, trésorerie, porte-parolat, animation de section.",
+    actions: [
+      { id: "resp-1", label: "Viser un poste dans la section locale", detail: "Secrétaire de section, trésorier, référent thématique. Ces postes sont souvent peu convoités et faciles à obtenir pour qui se rend disponible — ils donnent une vraie vue sur le fonctionnement interne." },
+      { id: "resp-2", label: "Participer aux instances de vote internes", detail: "Congrès, motions, désignations : ta participation active et ton vote comptent pour te faire connaître des cadres du parti au niveau local et régional." },
+      { id: "resp-3", label: "Développer une expertise reconnue", detail: "Rédige des notes, interventions ou propositions sur 1 à 2 sujets (numérique et service public, souveraineté technologique, données personnelles). Deviens la personne qu'on sollicite sur ces thèmes." },
+      { id: "resp-4", label: "Se constituer un premier cercle de soutien", detail: "Repère 5 à 10 personnes qui te feraient confiance pour te placer sur une liste ou te déléguer une responsabilité. Entretiens ces relations dans la durée." },
+    ],
+  },
+  {
+    id: "mandat-municipal", order: 4, title: "Obtenir un premier mandat local", timeframe: "Aligné sur le calendrier des élections municipales",
+    summary: "Le conseil municipal est la porte d'entrée classique en France vers une carrière politique. Une place éligible sur une liste, même en position modeste, change tout.",
+    actions: [
+      { id: "mun-1", label: "Se positionner tôt pour une place sur liste", detail: "Les listes se constituent 12 à 18 mois avant le scrutin. Fais savoir en interne, suffisamment tôt, que tu es candidat à une place — y compris non-éligible au premier tour : c'est un investissement pour le mandat suivant." },
+      { id: "mun-2", label: "Comprendre le mode de scrutin local", detail: "À Saint-Étienne comme à Lyon (avec la spécificité de la métropole de Lyon et du système par secteurs à Lyon même), le scrutin de liste proportionnel avec prime majoritaire structure toute la stratégie de positionnement." },
+      { id: "mun-3", label: "Construire un mini-programme crédible sur ton sujet", detail: "Propose 2-3 mesures concrètes et chiffrées sur le numérique public local (open data, cybersécurité des services municipaux, inclusion numérique)." },
+      { id: "mun-4", label: "Respecter le cadre légal du financement de campagne", detail: "Renseigne-toi tôt auprès de la CNCCFP sur les règles de financement, plafonds de dépenses et mandataire financier — les irrégularités disqualifient des carrières entières." },
+    ],
+  },
+  {
+    id: "rayonnement", order: 5, title: "Monter en responsabilité", timeframe: "1 à 2 mandats locaux",
+    summary: "Un siège de conseiller municipal ne suffit pas : c'est la qualité de ton mandat qui ouvre la suite (adjoint, conseiller métropolitain, départemental, régional).",
+    actions: [
+      { id: "ray-1", label: "Viser une délégation ou une vice-présidence", detail: "Numérique, transition écologique, finances : une délégation te donne un budget, une administration et une vitrine d'action concrète." },
+      { id: "ray-2", label: "Siéger à la métropole ou au département", detail: "Saint-Étienne Métropole ou la Métropole de Lyon sont des tremplins naturels après un mandat municipal réussi." },
+      { id: "ray-3", label: "Élargir ton réseau au niveau régional et national", detail: "Fédération départementale du parti, université d'été, congrès national : c'est là que se jouent les investitures aux élections suivantes." },
+      { id: "ray-4", label: "Documenter ton bilan", detail: "Prépare un bilan de mandat factuel (réalisations, votes, initiatives) : c'est ton meilleur argument pour une investiture aux législatives." },
+    ],
+  },
+  {
+    id: "legislatives", order: 6, title: "Viser l'investiture aux législatives", timeframe: "Aligné sur le calendrier des élections législatives",
+    summary: "Devenir député suppose une investiture de parti dans une circonscription (Loire pour Saint-Étienne, Rhône pour Lyon), un ancrage local reconnu et une capacité à mener campagne au scrutin uninominal à deux tours.",
+    actions: [
+      { id: "leg-1", label: "Étudier les circonscriptions de la Loire et du Rhône", detail: "Identifie la circonscription où ton implantation est la plus forte et où le rapport de force est le plus favorable à ta famille politique." },
+      { id: "leg-2", label: "Constituer un dossier de candidature interne", detail: "Bilan de mandat, soutiens locaux, programme de circonscription : les commissions d'investiture arbitrent sur ces critères, rarement sur la seule ancienneté." },
+      { id: "leg-3", label: "Anticiper les règles du scrutin uninominal", detail: "Le scrutin législatif français à deux tours exige une organisation de campagne différente d'une élection de liste : porte-à-porte massif, débats, gestion des triangulaires éventuelles." },
+      { id: "leg-4", label: "Sécuriser le financement et les parrainages internes", detail: "Vérifie les obligations déclaratives (HATVP en cas d'élection), le plafond de dépenses de la circonscription et le soutien financier du parti national." },
+    ],
+  },
+];
+
+const ARTICLES = [
+  {
+    id: "fonctionnement-partis", title: "Comment fonctionne vraiment un parti de l'intérieur", category: "Institutions", readMinutes: 6,
+    summary: "Sections locales, fédérations, congrès, motions : comprendre les rouages internes pour savoir où et comment peser.",
+    body: [
+      "Un parti politique français s'organise en général en trois échelons : la section ou le comité local, la fédération départementale, et la direction nationale. Le pouvoir réel se joue souvent au niveau départemental : c'est là que se décident les investitures aux élections locales et législatives.",
+      "Les statuts de chaque parti définissent les modalités de vote interne (motions de congrès, désignation des candidats). Lis-les avant de t'engager : ils déterminent tes marges de manœuvre réelles.",
+      "La discipline de vote interne et la loyauté envers les candidats désignés comptent presque autant que les idées défendues. Un militant qui respecte les process, même en désaccord ponctuel, gagne en crédibilité pour de futures responsabilités.",
+      "Les postes internes (secrétaire de section, trésorier, délégué au congrès) sont souvent sous-pourvus : s'y investir tôt est l'un des leviers les plus rapides pour se faire connaître des instances dirigeantes locales.",
+    ],
+  },
+  {
+    id: "financement-campagne", title: "Financement de campagne : ce qu'il faut savoir avant de te lancer", category: "Cadre légal", readMinutes: 5,
+    summary: "Plafonds, mandataire financier, remboursement : les règles françaises de financement électoral, à connaître avant toute candidature.",
+    body: [
+      "En France, toute candidature à une élection impose de désigner un mandataire financier (personne physique ou association de financement) via la préfecture, avant de recevoir le moindre don ou d'engager la moindre dépense.",
+      "Les dons de personnes physiques sont plafonnés (vérifie le montant exact à jour sur le site de la CNCCFP) et les dons de personnes morales, hors partis, sont interdits depuis 1995.",
+      "Les comptes de campagne doivent être déposés auprès de la CNCCFP ou des services préfectoraux dans les délais légaux. Un compte rejeté peut entraîner l'inéligibilité du candidat.",
+      "Un candidat qui dépasse un certain score (5 % des suffrages en général) peut obtenir un remboursement partiel de ses dépenses par l'État — un point clé à intégrer dans le plan de financement dès le départ.",
+    ],
+  },
+  {
+    id: "reseautage-utile", title: "Réseauter sans paraître calculateur", category: "Stratégie personnelle", readMinutes: 4,
+    summary: "Construire un réseau politique utile est un travail de fond, pas une série de contacts LinkedIn.",
+    body: [
+      "Le réseau politique se construit par la régularité et la fiabilité, pas par l'accumulation de contacts. Une personne qui répond présent aux réunions, tient ses engagements et rend service sans calcul immédiat devient rapidement identifiée comme fiable.",
+      "Catégorise mentalement ton réseau en cercles : mentors, pairs, et personnes que tu peux toi-même aider.",
+      "Un suivi discipliné (qui tu as rencontré, quand, sur quel sujet, quelle suite donner) fait une différence énorme sur plusieurs années — c'est un travail de CRM personnel, pas d'improvisation.",
+      "Ta double casquette d'ingénieur informatique est un atout de réseautage : propose ton aide technique à des structures locales. C'est un service concret qui ouvre des portes bien mieux qu'une carte de visite.",
+    ],
+  },
+  {
+    id: "calendrier-electoral", title: "Comprendre le calendrier électoral français", category: "Institutions", readMinutes: 5,
+    summary: "Municipales, départementales, régionales, législatives, présidentielle : quel scrutin pour quel mandat, et à quel rythme.",
+    body: [
+      "Les élections municipales et communautaires ont lieu tous les 6 ans (scrutin de liste, avec prime majoritaire) et renouvellent les conseils municipaux ainsi que, indirectement, les conseils métropolitains et communautaires.",
+      "Les élections départementales et régionales (généralement organisées ensemble) renouvellent les conseils départementaux et régionaux, également tous les 6 ans.",
+      "Les élections législatives (scrutin uninominal à deux tours, tous les 5 ans sauf dissolution) désignent les 577 députés de l'Assemblée nationale, un par circonscription.",
+      "Vérifie systématiquement les dates exactes sur service-public.fr ou le site du ministère de l'Intérieur : le calendrier peut être modifié par une dissolution ou une réforme électorale.",
+    ],
+  },
+  {
+    id: "prise-de-parole", title: "Prise de parole publique : les bases qui comptent vraiment", category: "Compétences", readMinutes: 4,
+    summary: "Réunion publique, conseil municipal, média local : les fondamentaux pour être audible et crédible, en partant d'un profil technique.",
+    body: [
+      "Un profil d'ingénieur a souvent un vrai atout en prise de parole politique : la capacité à structurer un argument avec des faits et des chiffres. Le risque à éviter est l'excès de technicité — reformule toujours en enjeux concrets pour les habitants.",
+      "Entraîne-toi d'abord dans des cadres à faible enjeu (réunion de section, conseil de quartier) avant les prises de parole plus exposées.",
+      "Prépare systématiquement trois messages clés par intervention, pas plus. La répétition du message est plus efficace que la densité d'arguments.",
+      "Les médias locaux (presse quotidienne régionale, radios locales) sont beaucoup plus accessibles que les médias nationaux — c'est souvent le meilleur point d'entrée pour construire une notoriété.",
+    ],
+  },
+];
+
+const CATEGORIES = [
+  { id: "mentor", label: "Mentor" },
+  { id: "elu", label: "Élu" },
+  { id: "parti", label: "Parti / appareil" },
+  { id: "militant", label: "Militant" },
+  { id: "presse", label: "Presse" },
+  { id: "financement", label: "Financement" },
+  { id: "associatif", label: "Associatif" },
+  { id: "autre", label: "Autre" },
+];
+
+const NUDGES = [
+  "Un mandat se construit sur des années de présence, pas sur un coup d'éclat. Aujourd'hui, fais une action, même petite.",
+  "Personne ne devient élu sans avoir été un bon militant avant. Le terrain d'aujourd'hui est le mandat de demain.",
+  "Ton profil d'ingénieur est rare en politique locale. C'est un avantage compétitif réel — utilise-le.",
+  "As-tu relancé quelqu'un de ton réseau cette semaine ? Le suivi discret fait toute la différence sur la durée.",
+  "La régularité bat l'intensité. Mieux vaut un engagement stable sur 3 ans qu'un sprint de 3 mois.",
+  "Une carrière politique se construit mandat après mandat. Sois patient avec le temps long, exigeant avec toi-même sur le quotidien.",
+  "Qui as-tu aidé cette semaine sans rien attendre en retour ? C'est souvent ce qui construit une vraie réputation locale.",
+];
+
+const CITIES = [
+  { id: "saint-etienne", label: "Saint-Étienne" },
+  { id: "lyon", label: "Lyon" },
+];
+
+const SITUATIONS = [
+  { id: "sympathisant", label: "Sympathisant, pas encore adhérent" },
+  { id: "adherent", label: "Adhérent à un parti" },
+  { id: "militant-actif", label: "Militant actif" },
+  { id: "responsable-local", label: "Responsable local" },
+  { id: "elu-local", label: "Déjà élu local" },
+];
+
+/* ---------- storage ---------- */
+
+const KEY = (k) => "maker:" + k;
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(KEY(key));
+    return raw === null ? fallback : JSON.parse(raw);
+  } catch { return fallback; }
+}
+function save(key, value) { localStorage.setItem(KEY(key), JSON.stringify(value)); }
+
+const state = {
+  onboardingDone: load("onboardingDone", false),
+  onboardingStep: 0,
+  profile: load("profile", { firstName: "", city: null, situation: null, party: null }),
+  progress: load("progress", { completedActionIds: [], currentStageId: "engagement" }),
+  contacts: load("contacts", []),
+  coach: load("coach", { notifPermissionAsked: false, lastSeenNudgeDate: null }),
+  tab: "parcours",
+  view: null, // {type: 'milestone'|'strategie'|'contact', id} overlays the tab content
+  editingContact: null, // contact object being edited in modal, or {} for new
+};
+
+function persist() {
+  save("onboardingDone", state.onboardingDone);
+  save("profile", state.profile);
+  save("progress", state.progress);
+  save("contacts", state.contacts);
+  save("coach", state.coach);
+}
+
+function totalActions() { return STAGES.reduce((n, s) => n + s.actions.length, 0); }
+function stageById(id) { return STAGES.find((s) => s.id === id); }
+function articleById(id) { return ARTICLES.find((a) => a.id === id); }
+function contactById(id) { return state.contacts.find((c) => c.id === id); }
+function categoryLabel(id) { return (CATEGORIES.find((c) => c.id === id) || {}).label || id; }
+function uid() { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8); }
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---------- icons ---------- */
+
+const ICONS = {
+  map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg>',
+  network: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="2.4"/><circle cx="18" cy="7" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M8 8.3L11 16M16 8.3L13 16M8.4 6.5H15.6"/></svg>',
+  bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-3.6 10.8c.6.5 1.1 1.3 1.1 2.2h5c0-.9.5-1.7 1.1-2.2A6 6 0 0012 3z"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4 0 6.5-2.6 6.5-6 0-2.8-1.7-4.2-2.6-6C15 12 13.7 12.6 13.7 11c0-1.8-1.3-3.5-2.7-5-.3 2-1.4 3-2.6 4.4C6.8 12.2 5.5 13.9 5.5 16c0 3.4 2.5 6 6.5 6z"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a7.6 7.6 0 000-3l1.8-1.4-2-3.4-2.1.7a7.6 7.6 0 00-2.6-1.5L14 2h-4l-.5 2.9a7.6 7.6 0 00-2.6 1.5l-2.1-.7-2 3.4L4.6 10.5a7.6 7.6 0 000 3L2.8 14.9l2 3.4 2.1-.7c.8.7 1.6 1.2 2.6 1.5L10 22h4l.5-2.9a7.6 7.6 0 002.6-1.5l2.1.7 2-3.4-1.8-1.4z"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>',
+};
+
+/* ---------- toast ---------- */
+
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+}
+
+/* ---------- notifications (best effort, browser-only) ---------- */
+
+function notificationsSupported() { return "Notification" in window; }
+function notificationPermission() { return notificationsSupported() ? Notification.permission : "unsupported"; }
+async function requestNotifications() {
+  if (!notificationsSupported()) { toast("Les notifications ne sont pas prises en charge par ce navigateur."); return false; }
+  const perm = await Notification.requestPermission();
+  state.coach.notifPermissionAsked = true;
+  persist();
+  return perm === "granted";
+}
+function sendTestNotification() {
+  if (notificationPermission() !== "granted") { toast("Active d'abord les notifications."); return; }
+  new Notification("Maker", { body: "Les notifications sont actives sur cet onglet." });
+}
+
+/* ---------- render: tab bar ---------- */
+
+const TABS = [
+  { id: "parcours", label: "Parcours", icon: ICONS.map },
+  { id: "reseau", label: "Réseau", icon: ICONS.network },
+  { id: "strategies", label: "Stratégies", icon: ICONS.bulb },
+  { id: "coach", label: "Coach", icon: ICONS.flame },
+  { id: "profil", label: "Profil", icon: ICONS.gear },
+];
+
+function renderTabbar() {
+  const bar = document.getElementById("tabbar");
+  if (!state.onboardingDone) { bar.innerHTML = ""; bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  bar.innerHTML = TABS.map(
+    (t) => `<button data-tab="${t.id}" class="${state.tab === t.id && !state.view ? "active" : ""}">${t.icon}<span>${t.label}</span></button>`
+  ).join("");
+  bar.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => { state.view = null; state.tab = btn.dataset.tab; renderAll(); });
+  });
+}
+
+/* ---------- render: main router ---------- */
+
+function renderAll() {
+  renderTabbar();
+  const main = document.getElementById("main");
+  if (!state.onboardingDone) { main.innerHTML = viewOnboarding(); bindOnboarding(); return; }
+  if (state.view?.type === "milestone") { main.innerHTML = viewMilestone(state.view.id); bindMilestone(state.view.id); return; }
+  if (state.view?.type === "strategie") { main.innerHTML = viewArticle(state.view.id); bindBack(); return; }
+  if (state.view?.type === "contact") { main.innerHTML = viewContact(state.view.id); bindContactDetail(state.view.id); return; }
+
+  switch (state.tab) {
+    case "parcours": main.innerHTML = viewParcours(); bindParcours(); break;
+    case "reseau": main.innerHTML = viewReseau(); bindReseau(); break;
+    case "strategies": main.innerHTML = viewStrategies(); bindStrategies(); break;
+    case "coach": main.innerHTML = viewCoach(); bindCoach(); break;
+    case "profil": main.innerHTML = viewProfil(); bindProfil(); break;
+  }
+  renderModal();
+}
+
+function bindBack() {
+  document.querySelectorAll("[data-back]").forEach((el) => el.addEventListener("click", () => { state.view = null; renderAll(); }));
+}
+
+/* ---------- onboarding ---------- */
+
+function viewOnboarding() {
+  const step = state.onboardingStep;
+  if (step === 0) {
+    return `
+      <div class="stack-lg" style="padding-top:24px">
+        <div class="stack">
+          <span class="eyebrow">Bienvenue</span>
+          <h1>Un espace pour avancer, pas seulement pour planifier</h1>
+          <p class="muted">Un parcours clair, un réseau organisé, des repères stratégiques et des rappels réguliers — pour avancer même les semaines chargées.</p>
+          <p class="muted">Tout reste sur cet appareil, dans ce navigateur. Rien n'est envoyé ailleurs.</p>
+        </div>
+        <button class="btn btn-primary btn-block" id="ob-next">Commencer</button>
+      </div>`;
+  }
+  if (step === 1) {
+    const p = state.profile;
+    return `
+      <div class="stack-lg" style="padding-top:12px">
+        <h2>Ton point de départ</h2>
+        <div class="field">
+          <label class="small muted">Prénom</label>
+          <input id="ob-firstname" type="text" value="${escapeHtml(p.firstName || "")}" placeholder="Prénom" />
+        </div>
+        <div class="stack">
+          <span class="small muted">Ville de référence</span>
+          <div class="choice-row" id="ob-cities">
+            ${CITIES.map((c) => `<button class="choice ${p.city === c.id ? "selected" : ""}" data-city="${c.id}">${c.label}</button>`).join("")}
+          </div>
+        </div>
+        <div class="stack">
+          <span class="small muted">Où en es-tu aujourd'hui ?</span>
+          <div class="choice-row" id="ob-situations" style="flex-direction:column;align-items:stretch">
+            ${SITUATIONS.map((s) => `<button class="choice ${p.situation === s.id ? "selected" : ""}" data-situation="${s.id}" style="text-align:left">${s.label}</button>`).join("")}
+          </div>
+        </div>
+        <div class="field">
+          <label class="small muted">Parti ou mouvement (optionnel)</label>
+          <input id="ob-party" type="text" value="${escapeHtml(p.party || "")}" placeholder="Nom du parti si déjà choisi" />
+        </div>
+        <button class="btn btn-primary btn-block" id="ob-next" disabled>Continuer</button>
+      </div>`;
+  }
+  return `
+    <div class="stack-lg" style="padding-top:12px">
+      <h2>Notifications, à toi de choisir</h2>
+      <p class="muted small">Optionnel. Le navigateur peut t'envoyer un message quand l'onglet est ouvert. Tu peux changer ça plus tard depuis Profil.</p>
+      <div class="card">
+        <h3>Notifications</h3>
+        <p class="muted small">Rappels d'actions et messages de motivation.</p>
+        <button class="btn btn-secondary" id="ob-notif">${notificationPermission() === "granted" ? "Activé" : "Activer"}</button>
+      </div>
+      <button class="btn btn-primary btn-block" id="ob-finish">Terminer</button>
+    </div>`;
+}
+
+function bindOnboarding() {
+  const step = state.onboardingStep;
+  if (step === 0) {
+    document.getElementById("ob-next").addEventListener("click", () => { state.onboardingStep = 1; renderAll(); });
+    return;
+  }
+  if (step === 1) {
+    const checkValid = () => {
+      const ok = state.profile.firstName.trim().length > 0 && state.profile.city && state.profile.situation;
+      document.getElementById("ob-next").disabled = !ok;
+    };
+    document.getElementById("ob-firstname").addEventListener("input", (e) => { state.profile.firstName = e.target.value; checkValid(); });
+    document.getElementById("ob-party").addEventListener("input", (e) => { state.profile.party = e.target.value; });
+    document.querySelectorAll("#ob-cities [data-city]").forEach((btn) => btn.addEventListener("click", () => { state.profile.city = btn.dataset.city; renderAll(); }));
+    document.querySelectorAll("#ob-situations [data-situation]").forEach((btn) => btn.addEventListener("click", () => { state.profile.situation = btn.dataset.situation; renderAll(); }));
+    checkValid();
+    document.getElementById("ob-next").addEventListener("click", () => { state.onboardingStep = 2; renderAll(); });
+    return;
+  }
+  document.getElementById("ob-notif").addEventListener("click", async () => { await requestNotifications(); renderAll(); });
+  document.getElementById("ob-finish").addEventListener("click", () => {
+    state.onboardingDone = true;
+    persist();
+    renderAll();
+  });
+}
+
+/* ---------- parcours ---------- */
+
+function viewParcours() {
+  const done = state.progress.completedActionIds.length;
+  const total = totalActions();
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const name = state.profile.firstName;
+  return `
+    <header class="view-header">
+      <span class="eyebrow">Parcours</span>
+      <h1>${name ? "Le parcours de " + escapeHtml(name) : "Ton parcours"}</h1>
+      <p class="muted small mono">${done} / ${total} actions faites</p>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </header>
+    ${STAGES.map((stage) => {
+      const ids = stage.actions.map((a) => a.id);
+      const stageDone = ids.filter((id) => state.progress.completedActionIds.includes(id)).length;
+      const isCurrent = state.progress.currentStageId === stage.id;
+      const isComplete = stageDone === ids.length;
+      const stagePct = ids.length ? Math.round((stageDone / ids.length) * 100) : 0;
+      return `
+        <div class="card tappable ${isCurrent ? "current" : ""}" data-stage="${stage.id}">
+          <div class="row between">
+            <h3>${stage.order}. ${escapeHtml(stage.title)}</h3>
+            ${isComplete ? '<span class="pill success">Complété</span>' : isCurrent ? '<span class="pill accent">En cours</span>' : ""}
+          </div>
+          <p class="muted small">${stage.timeframe}</p>
+          <p class="small">${stage.summary}</p>
+          <div class="progress-track"><div class="progress-fill" style="width:${stagePct}%"></div></div>
+          <p class="muted small mono">${stageDone} / ${ids.length} actions</p>
+        </div>`;
+    }).join("")}
+  `;
+}
+
+function bindParcours() {
+  document.querySelectorAll("[data-stage]").forEach((el) => el.addEventListener("click", () => { state.view = { type: "milestone", id: el.dataset.stage }; renderAll(); }));
+}
+
+function viewMilestone(id) {
+  const stage = stageById(id);
+  if (!stage) return `<p>Étape introuvable.</p>`;
+  const done = stage.actions.filter((a) => state.progress.completedActionIds.includes(a.id)).length;
+  const pct = stage.actions.length ? Math.round((done / stage.actions.length) * 100) : 0;
+  const isCurrent = state.progress.currentStageId === stage.id;
+  return `
+    <header class="view-header">
+      <div class="back-row"><button class="icon-btn" data-back>${ICONS.back}</button><span class="eyebrow">Étape ${stage.order}</span></div>
+      <h1>${escapeHtml(stage.title)}</h1>
+      <p class="muted small">${stage.timeframe}</p>
+      <p class="small">${stage.summary}</p>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </header>
+    ${isCurrent ? "" : `<button class="btn btn-secondary btn-block" id="set-current">Définir comme étape actuelle</button>`}
+    <div class="stack">
+      <h2 style="font-size:1rem">Actions concrètes</h2>
+      ${stage.actions.map((a) => {
+        const isDone = state.progress.completedActionIds.includes(a.id);
+        return `
+          <div class="card tappable" data-action="${a.id}">
+            <div class="row">
+              <div class="checkbox ${isDone ? "done" : ""}">${ICONS.check}</div>
+              <h3 style="${isDone ? "color:var(--text-muted);text-decoration:line-through" : ""}">${escapeHtml(a.label)}</h3>
+            </div>
+            <p class="muted small">${a.detail}</p>
+          </div>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+function bindMilestone(stageId) {
+  bindBack();
+  const setBtn = document.getElementById("set-current");
+  if (setBtn) setBtn.addEventListener("click", () => { state.progress.currentStageId = stageId; persist(); renderAll(); });
+  document.querySelectorAll("[data-action]").forEach((el) => el.addEventListener("click", () => {
+    const id = el.dataset.action;
+    const list = state.progress.completedActionIds;
+    const idx = list.indexOf(id);
+    if (idx === -1) list.push(id); else list.splice(idx, 1);
+    persist();
+    renderAll();
+  }));
+}
+
+/* ---------- reseau ---------- */
+
+function viewReseau() {
+  const contacts = state.contacts;
+  const now = Date.now();
+  const followUps = contacts.filter((c) => c.nextFollowUpAt && new Date(c.nextFollowUpAt).getTime() <= now);
+  const grouped = {};
+  CATEGORIES.forEach((c) => (grouped[c.id] = []));
+  contacts.forEach((c) => grouped[c.category]?.push(c));
+
+  return `
+    <header class="view-header">
+      <span class="eyebrow">Réseau</span>
+      <h1>Ton réseau</h1>
+      <p class="muted small">${contacts.length} contact(s) — construit et entretenu par toi.</p>
+    </header>
+    <button class="card tappable" id="add-contact" style="text-align:left"><h3>+ Ajouter un contact</h3></button>
+    ${followUps.length ? `
+      <div class="card">
+        <h3>À relancer</h3>
+        ${followUps.map((c) => `<button class="link-reset" style="background:none;border:none;text-align:left;padding:2px 0" data-contact="${c.id}">• ${escapeHtml(c.name)}</button>`).join("")}
+      </div>` : ""}
+    ${CATEGORIES.map((cat) => {
+      const list = grouped[cat.id];
+      if (!list.length) return "";
+      return `
+        <div class="stack">
+          <h2 style="font-size:1rem">${cat.label}</h2>
+          ${list.map((c) => `
+            <div class="card tappable" data-contact="${c.id}">
+              <div class="row between"><h3>${escapeHtml(c.name)}</h3><span class="pill">${cat.label}</span></div>
+              ${c.role ? `<p class="muted small">${escapeHtml(c.role)}</p>` : ""}
+              ${c.city ? `<p class="muted small">${escapeHtml(c.city)}</p>` : ""}
+            </div>`).join("")}
+        </div>`;
+    }).join("")}
+    ${contacts.length === 0 ? `<div class="card"><p class="muted small">Aucun contact pour l'instant. Commence par les personnes que tu connais déjà : responsables de section, élus locaux, associations.</p></div>` : ""}
+  `;
+}
+
+function bindReseau() {
+  document.getElementById("add-contact").addEventListener("click", () => { state.editingContact = {}; renderModal(true); });
+  document.querySelectorAll("[data-contact]").forEach((el) => el.addEventListener("click", () => { state.view = { type: "contact", id: el.dataset.contact }; renderAll(); }));
+}
+
+function viewContact(id) {
+  const c = contactById(id);
+  if (!c) return `<p>Contact introuvable.</p>`;
+  return `
+    <header class="view-header">
+      <div class="back-row"><button class="icon-btn" data-back>${ICONS.back}</button><span class="eyebrow">${categoryLabel(c.category)}</span></div>
+      <h1>${escapeHtml(c.name)}</h1>
+      ${c.lastContactAt ? `<p class="muted small mono">Dernier contact : ${new Date(c.lastContactAt).toLocaleDateString("fr-FR")}</p>` : ""}
+    </header>
+    <button class="btn btn-secondary btn-block" id="mark-contacted">Marquer comme contacté aujourd'hui</button>
+    <div class="card stack">
+      ${c.role ? row("Rôle", c.role) : ""}
+      ${c.city ? row("Ville", c.city) : ""}
+      ${c.phone ? row("Téléphone", c.phone) : ""}
+      ${c.email ? row("Email", c.email) : ""}
+      ${c.notes ? row("Notes", c.notes) : ""}
+    </div>
+    <button class="btn btn-secondary btn-block" id="edit-contact">Modifier</button>
+    <button class="btn btn-danger btn-block" id="delete-contact">Supprimer ce contact</button>
+  `;
+  function row(label, value) { return `<div><span class="small muted">${label}</span><p>${escapeHtml(value)}</p></div>`; }
+}
+
+function bindContactDetail(id) {
+  bindBack();
+  document.getElementById("mark-contacted").addEventListener("click", () => {
+    const c = contactById(id);
+    c.lastContactAt = new Date().toISOString();
+    persist();
+    renderAll();
+  });
+  document.getElementById("edit-contact").addEventListener("click", () => { state.editingContact = contactById(id); renderModal(true); });
+  document.getElementById("delete-contact").addEventListener("click", () => {
+    if (!confirm("Supprimer " + contactById(id).name + " ?")) return;
+    state.contacts = state.contacts.filter((c) => c.id !== id);
+    persist();
+    state.view = null;
+    renderAll();
+  });
+}
+
+function renderModal(forceOpen) {
+  const root = document.getElementById("modal-root");
+  if (!state.editingContact && !forceOpen) { root.innerHTML = ""; return; }
+  const c = state.editingContact || {};
+  const isNew = !c.id;
+  root.innerHTML = `
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal-sheet" id="modal-sheet">
+        <h2>${isNew ? "Nouveau contact" : "Modifier"}</h2>
+        <div class="field"><label class="small muted">Nom</label><input id="mf-name" type="text" value="${escapeHtml(c.name || "")}" placeholder="Nom du contact" /></div>
+        <div class="stack">
+          <span class="small muted">Catégorie</span>
+          <div class="choice-row" id="mf-categories">
+            ${CATEGORIES.map((cat) => `<button class="choice ${((c.category || "militant") === cat.id) ? "selected" : ""}" data-cat="${cat.id}">${cat.label}</button>`).join("")}
+          </div>
+        </div>
+        <div class="field"><label class="small muted">Rôle / fonction</label><input id="mf-role" type="text" value="${escapeHtml(c.role || "")}" placeholder="Ex : secrétaire de section" /></div>
+        <div class="field"><label class="small muted">Ville</label><input id="mf-city" type="text" value="${escapeHtml(c.city || "")}" placeholder="Ville" /></div>
+        <div class="field"><label class="small muted">Téléphone</label><input id="mf-phone" type="tel" value="${escapeHtml(c.phone || "")}" placeholder="Téléphone" /></div>
+        <div class="field"><label class="small muted">Email</label><input id="mf-email" type="email" value="${escapeHtml(c.email || "")}" placeholder="Email" /></div>
+        <div class="field"><label class="small muted">Notes</label><textarea id="mf-notes" placeholder="Contexte, historique, prochaine étape...">${escapeHtml(c.notes || "")}</textarea></div>
+        <button class="btn btn-primary btn-block" id="mf-submit" ${(c.name || "").trim() ? "" : "disabled"}>${isNew ? "Ajouter" : "Enregistrer"}</button>
+        <button class="btn btn-secondary btn-block" id="mf-cancel">Annuler</button>
+      </div>
+    </div>`;
+
+  let selectedCategory = c.category || "militant";
+  const submitBtn = document.getElementById("mf-submit");
+  const nameInput = document.getElementById("mf-name");
+  nameInput.addEventListener("input", () => { submitBtn.disabled = !nameInput.value.trim(); });
+  document.querySelectorAll("#mf-categories [data-cat]").forEach((btn) => btn.addEventListener("click", () => {
+    selectedCategory = btn.dataset.cat;
+    document.querySelectorAll("#mf-categories [data-cat]").forEach((b) => b.classList.toggle("selected", b.dataset.cat === selectedCategory));
+  }));
+  document.getElementById("mf-cancel").addEventListener("click", closeModal);
+  document.getElementById("modal-backdrop").addEventListener("click", (e) => { if (e.target.id === "modal-backdrop") closeModal(); });
+  submitBtn.addEventListener("click", () => {
+    const value = {
+      id: c.id || uid(),
+      name: nameInput.value.trim(),
+      category: selectedCategory,
+      role: document.getElementById("mf-role").value.trim(),
+      city: document.getElementById("mf-city").value.trim(),
+      phone: document.getElementById("mf-phone").value.trim(),
+      email: document.getElementById("mf-email").value.trim(),
+      notes: document.getElementById("mf-notes").value.trim(),
+      lastContactAt: c.lastContactAt || null,
+      nextFollowUpAt: c.nextFollowUpAt || null,
+      createdAt: c.createdAt || new Date().toISOString(),
+    };
+    const idx = state.contacts.findIndex((x) => x.id === value.id);
+    if (idx === -1) state.contacts.push(value); else state.contacts[idx] = value;
+    persist();
+    closeModal();
+    renderAll();
+  });
+
+  function closeModal() { state.editingContact = null; renderModal(); }
+}
+
+/* ---------- strategies ---------- */
+
+function viewStrategies() {
+  return `
+    <header class="view-header">
+      <span class="eyebrow">Stratégies</span>
+      <h1>Repères stratégiques</h1>
+      <p class="muted small">Fonctionnement des institutions, réseautage, cadre légal.</p>
+    </header>
+    ${ARTICLES.map((a) => `
+      <div class="card tappable" data-article="${a.id}">
+        <div class="row between" style="align-items:flex-start"><h3>${escapeHtml(a.title)}</h3><span class="pill mono">${a.readMinutes} min</span></div>
+        <span class="pill accent" style="align-self:flex-start">${a.category}</span>
+        <p class="muted small">${a.summary}</p>
+      </div>`).join("")}
+  `;
+}
+
+function bindStrategies() {
+  document.querySelectorAll("[data-article]").forEach((el) => el.addEventListener("click", () => { state.view = { type: "strategie", id: el.dataset.article }; renderAll(); }));
+}
+
+function viewArticle(id) {
+  const a = articleById(id);
+  if (!a) return `<p>Article introuvable.</p>`;
+  return `
+    <header class="view-header">
+      <div class="back-row"><button class="icon-btn" data-back>${ICONS.back}</button><span class="pill accent">${a.category}</span></div>
+      <h1>${escapeHtml(a.title)}</h1>
+      <p class="muted small mono">${a.readMinutes} min de lecture</p>
+    </header>
+    <div class="stack-lg">${a.body.map((p) => `<p>${p}</p>`).join("")}</div>
+  `;
+}
+
+/* ---------- coach ---------- */
+
+function dailyMessage() {
+  const idx = Math.abs(new Date().getDate()) % NUDGES.length;
+  return NUDGES[idx];
+}
+
+function viewCoach() {
+  const stage = stageById(state.progress.currentStageId);
+  const nextAction = stage?.actions.find((a) => !state.progress.completedActionIds.includes(a.id));
+  const granted = notificationPermission() === "granted";
+  return `
+    <header class="view-header">
+      <span class="eyebrow">Coach</span>
+      <h1>Coach</h1>
+      <p class="muted small">Un message par jour, un prochain pas toujours identifié.</p>
+    </header>
+    <div class="card">
+      <h3>Aujourd'hui</h3>
+      <p>${dailyMessage()}</p>
+    </div>
+    ${nextAction && stage ? `
+      <div class="card">
+        <h3>Prochaine action</h3>
+        <p class="muted small">${escapeHtml(stage.title)}</p>
+        <p>${escapeHtml(nextAction.label)}</p>
+        <button class="btn btn-secondary" data-stage="${stage.id}" id="goto-stage">Voir l'étape</button>
+      </div>` : ""}
+    <div class="card">
+      <h3>Notifications du navigateur</h3>
+      <p class="muted small">Fonctionnent quand cet onglet est ouvert. Pour un vrai rappel quotidien fiable, ajoute Maker à ton écran d'accueil (voir Profil).</p>
+      <button class="btn ${granted ? "btn-secondary" : "btn-primary"}" id="coach-notif" ${granted ? "disabled" : ""}>${granted ? "Activées" : "Activer"}</button>
+      <button class="btn btn-secondary" id="coach-test">Envoyer une notification de test</button>
+    </div>
+  `;
+}
+
+function bindCoach() {
+  const gotoBtn = document.getElementById("goto-stage");
+  if (gotoBtn) gotoBtn.addEventListener("click", () => { state.view = { type: "milestone", id: gotoBtn.dataset.stage }; renderAll(); });
+  const notifBtn = document.getElementById("coach-notif");
+  if (notifBtn) notifBtn.addEventListener("click", async () => { await requestNotifications(); renderAll(); });
+  document.getElementById("coach-test").addEventListener("click", async () => {
+    if (notificationPermission() !== "granted") { const ok = await requestNotifications(); if (!ok) return; }
+    sendTestNotification();
+  });
+}
+
+/* ---------- profil ---------- */
+
+function viewProfil() {
+  const p = state.profile;
+  const granted = notificationPermission() === "granted";
+  return `
+    <header class="view-header">
+      <span class="eyebrow">Profil</span>
+      <h1>Profil</h1>
+      <p class="muted small">${escapeHtml(p.firstName || "Sans nom")} · ${p.city ? CITIES.find(c=>c.id===p.city)?.label : "—"}</p>
+    </header>
+    <div class="card">
+      <h3>Notifications</h3>
+      <div class="row between">
+        <p class="small muted">${granted ? "Activées" : "Désactivées"}</p>
+        ${granted ? "" : `<button class="btn btn-secondary" id="grant-notif">Activer</button>`}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Ajouter à l'écran d'accueil</h3>
+      <p class="muted small">Sur iPhone (Safari) : bouton Partager → "Sur l'écran d'accueil".<br>Sur Android (Chrome) : menu ⋮ → "Ajouter à l'écran d'accueil".</p>
+      <p class="muted small">Une fois ajoutée, l'icône s'ouvre en plein écran, comme une vraie app.</p>
+    </div>
+    <div class="card">
+      <h3>Données</h3>
+      <p class="muted small">Tout est stocké uniquement dans ce navigateur, sur cet appareil. Aucune synchronisation externe.</p>
+      <button class="btn btn-danger btn-block" id="reset-all">Réinitialiser toutes les données</button>
+    </div>
+    <div class="card">
+      <h3>Thème</h3>
+      <div class="row" style="gap:8px">
+        <button class="btn btn-secondary" id="theme-light">Clair</button>
+        <button class="btn btn-secondary" id="theme-dark">Sombre</button>
+        <button class="btn btn-secondary" id="theme-auto">Auto</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindProfil() {
+  const grantBtn = document.getElementById("grant-notif");
+  if (grantBtn) grantBtn.addEventListener("click", async () => { await requestNotifications(); renderAll(); });
+  document.getElementById("reset-all").addEventListener("click", () => {
+    if (!confirm("Ton profil, ton parcours, ton réseau et tes réglages seront définitivement supprimés de ce navigateur. Continuer ?")) return;
+    ["onboardingDone", "profile", "progress", "contacts", "coach"].forEach((k) => localStorage.removeItem(KEY(k)));
+    state.onboardingDone = false;
+    state.onboardingStep = 0;
+    state.profile = { firstName: "", city: null, situation: null, party: null };
+    state.progress = { completedActionIds: [], currentStageId: "engagement" };
+    state.contacts = [];
+    state.coach = { notifPermissionAsked: false, lastSeenNudgeDate: null };
+    state.view = null;
+    renderAll();
+  });
+  document.getElementById("theme-light").addEventListener("click", () => setTheme("light"));
+  document.getElementById("theme-dark").addEventListener("click", () => setTheme("dark"));
+  document.getElementById("theme-auto").addEventListener("click", () => setTheme(null));
+}
+
+function setTheme(theme) {
+  if (theme) { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem(KEY("theme"), theme); }
+  else { document.documentElement.removeAttribute("data-theme"); localStorage.removeItem(KEY("theme")); }
+}
+
+/* ---------- init ---------- */
+
+(function init() {
+  const savedTheme = localStorage.getItem(KEY("theme"));
+  if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+  renderAll();
+
+  if (state.onboardingDone) {
+    const key = todayKey();
+    if (state.coach.lastSeenNudgeDate !== key) {
+      state.coach.lastSeenNudgeDate = key;
+      persist();
+      setTimeout(() => toast(dailyMessage()), 500);
+    }
+  }
+})();
+</script>

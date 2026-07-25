@@ -1,14 +1,31 @@
 # Maker
 
-Assistant personnel mobile (React Native / Expo) pour organiser un projet
-d'engagement personnel sur la durée : un parcours en étapes, un carnet de
-contacts, une bibliothèque de repères stratégiques, et un coach qui envoie
-des rappels réguliers.
+Assistant personnel pour organiser un projet d'engagement personnel sur la
+durée : un parcours en étapes, un carnet de contacts, une bibliothèque de
+repères stratégiques, et un coach qui envoie des rappels réguliers.
 
-Toutes les données restent en local sur l'appareil (`AsyncStorage`). Rien
+Deux versions du même assistant, indépendantes l'une de l'autre :
+
+- **`web/index.html`** — page web autonome (HTML/CSS/JS, zéro dépendance,
+  zéro build). S'ouvre directement dans un navigateur mobile, se persiste
+  via `localStorage`, peut être ajoutée à l'écran d'accueil. C'est la
+  version à utiliser si tu n'as pas d'ordinateur sous la main pour builder
+  l'app native.
+- **`app/`, `lib/`** — app React Native / Expo, avec vraies intégrations
+  natives (notifications planifiées, agenda, contacts du téléphone). Demande
+  Node + Expo Go pour être testée (voir plus bas).
+
+Dans les deux cas, toutes les données restent en local sur l'appareil. Rien
 n'est synchronisé vers un serveur par défaut.
 
-## Stack
+## Version web (`web/index.html`)
+
+Aucune installation : ouvre le fichier dans un navigateur (ou héberge-le où
+tu veux, y compris en l'ouvrant directement depuis le disque). Les
+notifications du navigateur fonctionnent en best-effort, uniquement onglet
+ouvert — pas de vrai push en arrière-plan sans backend dédié.
+
+## Version native — Stack
 
 - Expo (SDK 57) + React Native + TypeScript
 - `expo-router` pour la navigation (fichiers sous `app/`)
