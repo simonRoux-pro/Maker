@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autopilot</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #14171a; --muted: #6b7280;
+    --line: #e3e6ea; --pos: #1a7f4b; --neg: #b4232a; --warn: #a15c00;
+    --accent: #1f4ed8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101215; --panel: #181b20; --ink: #e8eaed; --muted: #9aa3ad;
+      --line: #272b31; --pos: #4ec98a; --neg: #f0726f; --warn: #e0a33a;
+      --accent: #7aa2ff;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101215; --panel: #181b20; --ink: #e8eaed; --muted: #9aa3ad;
+    --line: #272b31; --pos: #4ec98a; --neg: #f0726f; --warn: #e0a33a;
+    --accent: #7aa2ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 16px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em;
+       color: var(--muted); margin: 0 0 10px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+           justify-content: space-between; margin-bottom: 18px; }
+  .panel { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .tile { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 14px; }
+  .tile .label { font-size: 12px; color: var(--muted); text-transform: uppercase;
+                 letter-spacing: .05em; }
+  .tile .value { font-size: 26px; font-weight: 600; margin-top: 4px;
+                 font-variant-numeric: tabular-nums; }
+  .pos { color: var(--pos); } .neg { color: var(--neg); } .warn { color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; color: var(--muted); font-weight: 600;
+       text-transform: uppercase; letter-spacing: .04em; }
+  td.num, th.num { text-align: right; }
+  button {
+    font: inherit; padding: 7px 12px; border-radius: 7px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { background: var(--neg); border-color: var(--neg); color: #fff; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .banner { border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;
+            border: 1px solid var(--neg); color: var(--neg); font-weight: 600; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px;
+           border: 1px solid var(--line); color: var(--muted); }
+  ul.audit { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
+  ul.audit li { padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  svg { width: 100%; height: 180px; display: block; }
+  @media (max-width: 560px) { body { padding: 12px; } .tile .value { font-size: 22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Autopilot</h1>
+      <div class="muted small" id="subtitle">chargement</div>
+    </div>
+    <div class="row">
+      <button id="cycle">Lancer un cycle</button>
+      <button id="kill" class="danger">Kill switch</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <div class="grid" id="tiles"></div>
+
+  <div class="panel">
+    <h2>Marge nette cumulee</h2>
+    <div class="row small muted" style="margin-bottom:8px">
+      <label><input type="radio" name="mode" value="live" checked> reel</label>
+      <label><input type="radio" name="mode" value="dry_run"> simulation</label>
+    </div>
+    <div id="chart"></div>
+  </div>
+
+  <div class="panel">
+    <h2>File d'approbation</h2>
+    <div id="approvals"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Strategies</h2>
+    <div id="strategies"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Garde-fous</h2>
+    <div id="guardrails" class="small"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Journal d'audit</h2>
+    <ul class="audit" id="audit"></ul>
+  </div>
+</div>
+
+<script>
+const eur = (n) => (n < 0 ? "-" : "") + Math.abs(n).toFixed(2) + " EUR";
+const cls = (n) => (n > 0 ? "pos" : n < 0 ? "neg" : "muted");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let state = null;
+let chartMode = "live";
+
+async function api(path, body) {
+  const opts = body ? {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  } : {};
+  const res = await fetch(path, opts);
+  return res.json();
+}
+
+async function refresh() {
+  state = await api("/api/state");
+  render();
+}
+
+function render() {
+  const live = state.totals.live, dry = state.totals.dry_run;
+  document.getElementById("subtitle").textContent =
+    "poste d'observation local, aucune action reelle sans ta validation";
+
+  document.getElementById("banner").innerHTML = state.killswitch.active
+    ? `<div class="banner">Kill switch actif. Aucune action reelle ne part. ${esc(state.killswitch.reason || "")}</div>`
+    : "";
+  document.getElementById("kill").textContent =
+    state.killswitch.active ? "Relacher le kill switch" : "Kill switch";
+
+  document.getElementById("tiles").innerHTML = `
+    <div class="tile"><div class="label">Marge nette reelle</div>
+      <div class="value ${cls(live.margin)}">${eur(live.margin)}</div>
+      <div class="small muted">revenus ${eur(live.revenue)} / couts ${eur(live.cost)}</div></div>
+    <div class="tile"><div class="label">Marge simulee</div>
+      <div class="value ${cls(dry.margin)}">${eur(dry.margin)}</div>
+      <div class="small muted">revenus ${eur(dry.revenue)} / couts ${eur(dry.cost)}</div></div>
+    <div class="tile"><div class="label">Budget restant</div>
+      <div class="value">${eur(state.budget.remaining.total)}</div>
+      <div class="small muted">plafond total ${eur(state.budget.max_total)}</div></div>
+    <div class="tile"><div class="label">Reste aujourd'hui</div>
+      <div class="value">${eur(state.budget.remaining.today)}</div>
+      <div class="small muted">plafond jour ${eur(state.budget.max_daily)}</div></div>`;
+
+  chart();
+  approvals();
+  strategies();
+  guardrails();
+  audit();
+}
+
+function chart() {
+  const data = state.series[chartMode];
+  const host = document.getElementById("chart");
+  if (!data.length) {
+    host.innerHTML = '<div class="muted small">aucune ecriture pour ce mode</div>';
+    return;
+  }
+  const w = 900, h = 180, pad = 26;
+  const values = data.map((d) => d.cumulative);
+  const min = Math.min(0, ...values), max = Math.max(0, ...values);
+  const span = (max - min) || 1;
+  const x = (i) => pad + (data.length === 1 ? (w - 2 * pad) / 2
+    : (i * (w - 2 * pad)) / (data.length - 1));
+  const y = (v) => h - pad - ((v - min) / span) * (h - 2 * pad);
+  const pts = data.map((d, i) => `${x(i).toFixed(1)},${y(d.cumulative).toFixed(1)}`).join(" ");
+  const zero = y(0).toFixed(1);
+  const last = values[values.length - 1];
+  host.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" role="img"
+         aria-label="marge cumulee ${chartMode}: ${last.toFixed(2)} euros">
+      <line x1="${pad}" x2="${w - pad}" y1="${zero}" y2="${zero}"
+            stroke="var(--line)" stroke-width="1"/>
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"
+                stroke-linejoin="round"/>
+      ${data.map((d, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d.cumulative).toFixed(1)}"
+        r="3" fill="var(--accent)"><title>${esc(d.day)}: ${d.cumulative.toFixed(2)} EUR</title></circle>`).join("")}
+      <text x="${pad}" y="14" fill="var(--muted)" font-size="11">${max.toFixed(2)}</text>
+      <text x="${pad}" y="${h - 6}" fill="var(--muted)" font-size="11">${min.toFixed(2)}</text>
+      <text x="${w - pad}" y="14" fill="var(--muted)" font-size="11" text-anchor="end">
+        ${esc(data[data.length - 1].day)}</text>
+    </svg>`;
+}
+
+function approvals() {
+  const pending = state.approvals.pending;
+  const host = document.getElementById("approvals");
+  if (!pending.length) {
+    host.innerHTML = '<div class="muted small">rien en attente. Tu n\'as rien a faire.</div>';
+    return;
+  }
+  host.innerHTML = `<table><thead><tr><th>#</th><th>Strategie</th><th>Action</th>
+    <th class="num">Cout</th><th>Risque</th><th></th></tr></thead><tbody>
+    ${pending.map((a) => `<tr>
+      <td>${a.id}</td><td>${esc(a.strategy)}</td>
+      <td>${esc(a.summary)}<div class="small muted">${esc(a.kind)}${a.platform ? " / " + esc(a.platform) : ""}</div></td>
+      <td class="num">${eur(a.estimated_cost)}</td>
+      <td><span class="badge">${esc(a.risk)}</span></td>
+      <td><div class="row">
+        <button class="primary" data-approve="${a.id}">Valider</button>
+        <button data-reject="${a.id}">Refuser</button>
+      </div></td></tr>`).join("")}</tbody></table>`;
+  host.querySelectorAll("[data-approve]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      await api(`/api/approvals/${b.dataset.approve}/approve`, { note: "valide depuis le dashboard" });
+      refresh();
+    }));
+  host.querySelectorAll("[data-reject]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      await api(`/api/approvals/${b.dataset.reject}/reject`, { note: "refuse depuis le dashboard" });
+      refresh();
+    }));
+}
+
+function strategies() {
+  const verdicts = {};
+  state.analysis.strategies.forEach((r) => { verdicts[r.strategy] = r; });
+  document.getElementById("strategies").innerHTML = `
+    <table><thead><tr><th>Strategie</th><th>Mode</th>
+      <th class="num">Marge reelle</th><th class="num">Marge simulee</th>
+      <th>Verdict</th></tr></thead><tbody>
+    ${state.strategies.map((s) => {
+      const v = verdicts[s.name] || {};
+      const lm = v.live ? v.live.margin : 0, dm = v.dry_run ? v.dry_run.margin : 0;
+      return `<tr>
+        <td>${esc(s.name)}<div class="small muted">${esc(s.manifest.summary)}</div></td>
+        <td>${s.enabled ? esc(s.mode) : '<span class="muted">off</span>'}</td>
+        <td class="num ${cls(lm)}">${eur(lm)}</td>
+        <td class="num ${cls(dm)}">${eur(dm)}</td>
+        <td>${esc(v.verdict || "-")}<div class="small muted">${esc(v.why || "")}</div></td>
+      </tr>`;
+    }).join("")}</tbody></table>`;
+}
+
+function guardrails() {
+  const g = state.budget, a = state.allowlist;
+  document.getElementById("guardrails").innerHTML = `
+    <div>Plafonds: total ${eur(g.max_total)}, jour ${eur(g.max_daily)},
+      par strategie ${eur(g.max_per_strategy)}</div>
+    <div>Plateformes autorisees: ${a.platforms.length ? a.platforms.map(esc).join(", ")
+      : '<span class="muted">aucune, tout est refuse</span>'}</div>
+    <div>APIs autorisees: ${a.apis.length ? a.apis.map(esc).join(", ")
+      : '<span class="muted">aucune, tout est refuse</span>'}</div>
+    <div class="muted">Modifie <code>config/guardrails.toml</code> pour changer ces valeurs.</div>`;
+}
+
+function audit() {
+  document.getElementById("audit").innerHTML = state.audit.map((e) => `
+    <li><code>${esc(e.ts)}</code> <strong>${esc(e.event)}</strong>
+      <span class="muted">${esc(JSON.stringify(e.payload))}</span></li>`).join("");
+}
+
+document.getElementById("kill").addEventListener("click", async () => {
+  await api("/api/killswitch", { active: !state.killswitch.active });
+  refresh();
+});
+document.getElementById("cycle").addEventListener("click", async (e) => {
+  e.target.disabled = true;
+  e.target.textContent = "cycle en cours";
+  await api("/api/cycle", {});
+  e.target.disabled = false;
+  e.target.textContent = "Lancer un cycle";
+  refresh();
+});
+document.querySelectorAll('input[name="mode"]').forEach((r) =>
+  r.addEventListener("change", (e) => { chartMode = e.target.value; chart(); }));
+
+refresh();
+setInterval(refresh, 15000);
+</script>
+</body>
+</html>

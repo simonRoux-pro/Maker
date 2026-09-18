@@ -1,0 +1,232 @@
+"""Ligne de commande.
+
+  python3 -m autopilot.cli cycle              lance un cycle complet
+  python3 -m autopilot.cli dry-run [nom]      simule une strategie
+  python3 -m autopilot.cli report             etat du Ledger
+  python3 -m autopilot.cli approvals          file d'approbation
+  python3 -m autopilot.cli approve <id>       valide une action reelle
+  python3 -m autopilot.cli reject <id>        refuse une action reelle
+  python3 -m autopilot.cli kill               coupe toute action reelle
+  python3 -m autopilot.cli resume             relache le kill switch
+  python3 -m autopilot.cli dashboard          demarre le poste d'observation
+  python3 -m autopilot.cli strategies         liste les strategies chargees
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+
+from . import approvals as approvals_mod
+from . import memory
+from .config import load
+from .guardrails import killswitch
+from .ledger import Ledger, connect
+from .ledger.queries import cumulative_margin, daily_series, margin_by_strategy
+from .orchestrator import analyze
+from .orchestrator import cycle as cycle_mod
+from .strategies import Context, registry
+
+
+def _eur(value: float) -> str:
+    return f"{value:.2f} EUR"
+
+
+def cmd_cycle(args) -> int:
+    summary = cycle_mod.run()
+    print(f"cycle {summary['cycle']} termine, compte-rendu: {summary['journal_path']}")
+    for run in summary["runs"]:
+        print(f"  {run['strategy']} [{run['mode']}] marge {_eur(run['margin'])}")
+        for blocked in run["actions_blocked"]:
+            print(f"    bloque: {blocked}")
+    pending = summary["pending_approvals"]
+    print(f"  en attente de validation: {len(pending)}")
+    if args.json:
+        print(json.dumps(summary, ensure_ascii=False, indent=2, default=str))
+    return 0
+
+
+def cmd_dry_run(args) -> int:
+    cfg = load()
+    conn = connect()
+    ledger = Ledger(conn, cfg.guardrails.fees)
+    ctx = Context(conn=conn, cfg=cfg, ledger=ledger)
+    found = registry.discover()
+    names = [args.name] if args.name else sorted(found)
+    for name in names:
+        strategy = found.get(name)
+        if strategy is None:
+            print(f"strategie inconnue: {name}", file=sys.stderr)
+            return 1
+        plan = strategy.plan(ctx)
+        ledger.clear_dry_run(name)
+        result = strategy.dry_run(ctx)
+        print(f"{name}: plan {len(plan.steps)} etapes, "
+              f"revenus simules {_eur(result.revenue)}, couts {_eur(result.cost)}, "
+              f"marge {_eur(result.margin)}")
+        for note in result.notes:
+            print(f"  note: {note}")
+    conn.close()
+    return 0
+
+
+def cmd_report(args) -> int:
+    cfg = load()
+    conn = connect()
+    for mode in ("live", "dry_run"):
+        total = cumulative_margin(conn, mode)
+        print(f"[{mode}] revenus {_eur(total['revenue'])}, couts {_eur(total['cost'])}, "
+              f"marge {_eur(total['margin'])}")
+        for row in margin_by_strategy(conn, mode):
+            print(f"  {row['strategy']}: marge {_eur(row['margin'])}")
+        series = daily_series(conn, mode)
+        if series:
+            last = series[-1]
+            print(f"  dernier jour {last['day']}: cumul {_eur(last['cumulative'])}")
+    verdicts = analyze(conn, cfg)
+    print("verdicts:")
+    for row in verdicts["strategies"]:
+        print(f"  {row['strategy']}: {row['verdict']} ({row['why']})")
+    mem = memory.connect()
+    for c in memory.cycles(mem, limit=5):
+        print(f"cycle {c['number']}: marge reelle {_eur(c['margin'] or 0)} "
+              f"-> {c['journal'] or 'pas de compte-rendu'}")
+    mem.close()
+    conn.close()
+    return 0
+
+
+def cmd_approvals(args) -> int:
+    conn = connect()
+    rows = approvals_mod.list_by_status(conn, args.status)
+    if not rows:
+        print(f"aucune approbation au statut {args.status}")
+    for a in rows:
+        print(f"#{a['id']} {a['strategy']} [{a['kind']}] {a['summary']} "
+              f"cout {_eur(a['estimated_cost'])} risque {a['risk']} ({a['created_at']})")
+    conn.close()
+    return 0
+
+
+def cmd_approve(args) -> int:
+    conn = connect()
+    try:
+        record = approvals_mod.approve(conn, args.id, by="simon", note=args.note)
+    except (KeyError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"#{record['id']} valide")
+    conn.close()
+    return 0
+
+
+def cmd_reject(args) -> int:
+    conn = connect()
+    try:
+        record = approvals_mod.reject(conn, args.id, by="simon", note=args.note)
+    except (KeyError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"#{record['id']} refuse")
+    conn.close()
+    return 0
+
+
+def cmd_kill(args) -> int:
+    cfg = load()
+    conn = connect()
+    killswitch.engage(conn, cfg.guardrails, by="simon")
+    print("kill switch actif, aucune action reelle ne part")
+    conn.close()
+    return 0
+
+
+def cmd_resume(args) -> int:
+    cfg = load()
+    conn = connect()
+    killswitch.release(conn, cfg.guardrails, by="simon")
+    print("kill switch relache")
+    conn.close()
+    return 0
+
+
+def cmd_strategies(args) -> int:
+    cfg = load()
+    for name, strategy in sorted(registry.discover().items()):
+        scfg = cfg.strategies.get(name)
+        mode = scfg.mode if scfg else "non configuree"
+        state = "activee" if scfg and scfg.enabled else "desactivee"
+        m = strategy.manifest
+        print(f"{name} [{state}, {mode}] risque {m.risk}, "
+              f"mise en route {_eur(m.estimated_setup_cost)}, "
+              f"mensuel {_eur(m.estimated_monthly_cost)}")
+        print(f"  {m.summary}")
+        if m.needs_operator:
+            for need in m.needs_operator:
+                print(f"  demande Simon: {need}")
+    return 0
+
+
+def cmd_dashboard(args) -> int:
+    from .dashboard import serve
+
+    serve(host=args.host, port=args.port)
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="autopilot", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("cycle", help="lance un cycle complet")
+    p.add_argument("--json", action="store_true", help="affiche le resume brut")
+    p.set_defaults(func=cmd_cycle)
+
+    p = sub.add_parser("dry-run", help="simule une strategie")
+    p.add_argument("name", nargs="?", help="nom de la strategie, toutes par defaut")
+    p.set_defaults(func=cmd_dry_run)
+
+    p = sub.add_parser("report", help="etat du Ledger et verdicts")
+    p.set_defaults(func=cmd_report)
+
+    p = sub.add_parser("approvals", help="file d'approbation")
+    p.add_argument("--status", default="pending",
+                   choices=["pending", "approved", "rejected", "executed", "expired"])
+    p.set_defaults(func=cmd_approvals)
+
+    p = sub.add_parser("approve", help="valide une action reelle")
+    p.add_argument("id", type=int)
+    p.add_argument("--note")
+    p.set_defaults(func=cmd_approve)
+
+    p = sub.add_parser("reject", help="refuse une action reelle")
+    p.add_argument("id", type=int)
+    p.add_argument("--note")
+    p.set_defaults(func=cmd_reject)
+
+    p = sub.add_parser("kill", help="coupe toute action reelle")
+    p.set_defaults(func=cmd_kill)
+
+    p = sub.add_parser("resume", help="relache le kill switch")
+    p.set_defaults(func=cmd_resume)
+
+    p = sub.add_parser("strategies", help="liste les strategies chargees")
+    p.set_defaults(func=cmd_strategies)
+
+    p = sub.add_parser("dashboard", help="demarre le poste d'observation local")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8765)
+    p.set_defaults(func=cmd_dashboard)
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

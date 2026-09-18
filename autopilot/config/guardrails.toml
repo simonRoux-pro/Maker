@@ -1,0 +1,32 @@
+# Garde-fous centraux. Aucune strategie ne peut les contourner.
+# Modifie ce fichier a la main, jamais depuis le code d'une strategie.
+
+[budget]
+# Tout en euros. 0 signifie: aucune depense reelle autorisee.
+max_total = 0.0            # plafond de depense cumulee, toutes strategies
+max_per_strategy = 0.0     # plafond de depense cumulee par strategie
+max_daily = 0.0            # plafond de depense sur la journee en cours
+
+[approval]
+# Une action a coup nul sur une plateforme autorisee part sans validation
+# manuelle. Tout ce qui coute de l'argent passe par la file.
+auto_approve_zero_cost = true
+# Au-dela de ce montant, validation manuelle obligatoire meme si le budget
+# le permettrait.
+manual_above = 0.0
+
+[killswitch]
+# Si ce fichier existe, aucune action reelle ne part. Point.
+file = "data/KILL"
+
+[allowlist]
+# Refus par defaut: une plateforme ou une API absente de ces listes est
+# refusee, meme si une strategie la demande.
+platforms = []
+apis = []
+
+[fees]
+# Frais PayPal appliques aux encaissements, pour que la marge nette soit
+# vraie et pas optimiste.
+paypal_percent = 3.4
+paypal_fixed = 0.35

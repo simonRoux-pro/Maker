@@ -1,0 +1,8 @@
+# Strategies activees et leur mode.
+#   dry_run : simulation, aucune action externe, aucune depense
+#   live    : actions reelles, soumises aux garde-fous et a la file d'approbation
+
+[hello_revenue]
+enabled = true
+mode = "dry_run"
+budget = 0.0

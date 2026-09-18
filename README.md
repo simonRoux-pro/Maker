@@ -18,6 +18,10 @@ Deux versions du même assistant, indépendantes l'une de l'autre :
 Dans les deux cas, toutes les données restent en local sur l'appareil. Rien
 n'est synchronisé vers un serveur par défaut.
 
+Le dossier **`autopilot/`** est un projet distinct, sans rapport avec
+l'assistant : un système de génération de revenus piloté par cycles, en Python
+et sans dépendance. Voir `autopilot/README.md`.
+
 ## Version web (`web/index.html`)
 
 Aucune installation : ouvre le fichier dans un navigateur (ou héberge-le où
