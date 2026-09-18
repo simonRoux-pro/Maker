@@ -1,0 +1,10 @@
+# Deploiement Cloudflare Workers. Aucun secret ici.
+# Le secret de la marketplace se pose a part:
+#   npx wrangler secret put RAPIDAPI_PROXY_SECRET
+
+name = "jours-feries-france"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+
+[observability]
+enabled = true

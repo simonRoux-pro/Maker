@@ -17,6 +17,7 @@ from .analyze import KILL, PROMOTE, SCALE, WATCH
 BACKLOG = [
     {
         "id": "micro_api_marketplace",
+        "strategy": "jours_feries_api",
         "title": "Micro-API payante sur marketplace",
         "mechanism": "abonnement mensuel par palier, la marketplace facture et reverse sur PayPal",
         "setup_cost": 0.0,
@@ -107,8 +108,12 @@ def propose(conn_memory: sqlite3.Connection, analysis: dict) -> list[dict]:
             )
 
     tried = {a["hypothesis"] for a in memory.history(conn_memory, limit=500)}
+    implemented = {row["strategy"] for row in analysis["strategies"]}
     for candidate in BACKLOG:
         if candidate["id"] in tried:
+            continue
+        # une piste deja portee par une strategie du depot n'est plus une piste
+        if candidate.get("strategy") in implemented:
             continue
         proposals.append(
             {

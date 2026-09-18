@@ -25,6 +25,8 @@ class Manifest:
     platforms: tuple[str, ...] = ()
     apis: tuple[str, ...] = ()
     needs_operator: tuple[str, ...] = field(default=())
+    # une strategie de validation ne doit jamais etre proposee pour du reel
+    test_only: bool = False
 
     @classmethod
     def load(cls, path: Path) -> "Manifest":
@@ -46,6 +48,7 @@ class Manifest:
             platforms=tuple(data.get("platforms", ())),
             apis=tuple(data.get("apis", ())),
             needs_operator=tuple(data.get("needs_operator", ())),
+            test_only=bool(data.get("test_only", False)),
         )
 
     def as_dict(self) -> dict:
@@ -58,4 +61,5 @@ class Manifest:
             "platforms": list(self.platforms),
             "apis": list(self.apis),
             "needs_operator": list(self.needs_operator),
+            "test_only": self.test_only,
         }

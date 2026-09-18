@@ -12,7 +12,9 @@ pas de build, pas de service externe.
 cd autopilot
 python3 -m autopilot.cli cycle        # un cycle complet, simulation seule
 python3 -m autopilot.cli dashboard    # http://127.0.0.1:8765
-python3 -m unittest discover -s tests -t tests
+python3 -m unittest discover -s tests -t tests           # 58 tests
+
+cd products/jours_feries_api && npm test                  # 57 tests, produit
 ```
 
 Le cycle ecrit un compte-rendu dans `journal/`. C'est le seul fichier a lire
@@ -87,6 +89,7 @@ autopilot/
   dashboard/    serveur local, bibliotheque standard
   audit/        journal append-only
   cli.py
+products/       le code vendu, independant du systeme qui le pilote
 journal/        un compte-rendu markdown par cycle
 data/           bases SQLite, hors git
 logs/           audit.jsonl, hors git
@@ -99,4 +102,13 @@ tests/          les garde-fous sont testes, un garde-fou qui ne bloque pas est u
   de bout en bout.
 - phase 2, dashboard avec marge nette et file d'approbation: fait.
 - phase 3, orchestrateur qui lit le Ledger et ecrit des propositions: fait.
-- phase 4, vraies strategies une par une, chacune d'abord en dry-run: a venir.
+- phase 4, vraies strategies une par une, chacune d'abord en dry-run: en cours.
+  Premiere strategie reelle: `jours_feries_api`, une API de jours feries et de
+  delais en droit francais, produit dans `products/jours_feries_api`. Elle
+  tourne en dry-run, et ses deux actions reelles restent refusees tant que les
+  plateformes ne sont pas dans la liste blanche.
+
+## Ou regarder si tu ne lis qu'une chose
+
+`journal/` pour le dernier compte-rendu. Sa derniere section liste ce qui
+demande une identite verifiee, donc toi, et rien d'autre.

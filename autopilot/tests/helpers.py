@@ -35,6 +35,11 @@ STRATEGIES = """
 enabled = {enabled}
 mode = "{mode}"
 budget = {budget}
+
+[jours_feries_api]
+enabled = {enabled}
+mode = "{mode}"
+budget = {budget}
 """
 
 

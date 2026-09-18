@@ -54,12 +54,19 @@ def render(cycle: int, summary: dict) -> str:
 
     lines += ["", "## En attente de ta validation", ""]
     if not summary["pending_approvals"]:
-        lines.append("- rien")
+        lines.append("- aucune action en file")
     for a in summary["pending_approvals"]:
         lines.append(
             f"- #{a['id']} {a['strategy']} [{a['kind']}] {a['summary']} "
             f"cout estime {a['estimated_cost']} EUR, risque {a['risk']}"
         )
+
+    lines += ["", "## Ce que le code ne peut pas faire a ta place", ""]
+    tasks = summary.get("operator_tasks", [])
+    if not tasks:
+        lines.append("- rien")
+    for t in tasks:
+        lines.append(f"- {t['strategy']}: {t['task']}")
 
     lines.append("")
     return "\n".join(lines)

@@ -2,6 +2,7 @@
 name = "hello_revenue"
 summary = "Strategie factice. Simule des encaissements et des couts pour valider la boucle complete: Ledger, garde-fous, file d'approbation, dashboard, orchestrateur."
 risk = "low"
+test_only = true
 estimated_setup_cost = 0.0
 estimated_monthly_cost = 0.0
 platforms = []

@@ -6,3 +6,8 @@
 enabled = true
 mode = "dry_run"
 budget = 0.0
+
+[jours_feries_api]
+enabled = true
+mode = "dry_run"
+budget = 0.0

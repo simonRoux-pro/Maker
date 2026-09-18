@@ -102,6 +102,11 @@
   </div>
 
   <div class="panel">
+    <h2>Ce que le code ne peut pas faire a ta place</h2>
+    <div id="operator"></div>
+  </div>
+
+  <div class="panel">
     <h2>Strategies</h2>
     <div id="strategies"></div>
   </div>
@@ -166,6 +171,7 @@ function render() {
 
   chart();
   approvals();
+  operator();
   strategies();
   guardrails();
   audit();
@@ -234,6 +240,20 @@ function approvals() {
       await api(`/api/approvals/${b.dataset.reject}/reject`, { note: "refuse depuis le dashboard" });
       refresh();
     }));
+}
+
+function operator() {
+  const tasks = state.operator_tasks || [];
+  const host = document.getElementById("operator");
+  if (!tasks.length) {
+    host.innerHTML = '<div class="muted small">rien, tout ce qui reste est automatisable.</div>';
+    return;
+  }
+  host.innerHTML = `<ul style="margin:0;padding-left:18px">
+    ${tasks.map((t) => `<li>${esc(t.task)}
+      <span class="badge">${esc(t.strategy)}</span></li>`).join("")}</ul>
+    <div class="small muted" style="margin-top:8px">
+      Ces etapes demandent une identite verifiee, aucun code ne peut les faire.</div>`;
 }
 
 function strategies() {

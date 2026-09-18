@@ -1,0 +1,13 @@
+[strategy]
+name = "jours_feries_api"
+summary = "API jours feries, jours ouvres et delais France, vendue par abonnement sur une marketplace d'APIs. Produit dans products/jours_feries_api, pur calcul, sans dependance externe."
+risk = "low"
+estimated_setup_cost = 0.0
+estimated_monthly_cost = 0.0
+platforms = ["rapidapi"]
+apis = ["cloudflare-workers"]
+needs_operator = [
+  "creer le compte Cloudflare, plan gratuit, sans carte bancaire",
+  "creer le compte fournisseur sur la marketplace d'APIs et y renseigner l'identite et le formulaire fiscal",
+  "relier ce compte au PayPal pour les versements",
+]

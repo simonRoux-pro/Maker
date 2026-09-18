@@ -18,7 +18,9 @@ WATCH = "observer"
 PROMOTE = "passer en live"
 
 
-def analyze(conn: sqlite3.Connection, cfg: Config) -> dict:
+def analyze(
+    conn: sqlite3.Connection, cfg: Config, test_only: frozenset[str] = frozenset()
+) -> dict:
     live = margin_by_strategy(conn, "live")
     dry = {r["strategy"]: r for r in margin_by_strategy(conn, "dry_run")}
     verdicts = []
@@ -28,7 +30,7 @@ def analyze(conn: sqlite3.Connection, cfg: Config) -> dict:
         scfg = cfg.strategies.get(name)
         live_row = next((r for r in live if r["strategy"] == name), None)
         dry_row = dry.get(name)
-        verdict, why = _verdict(scfg, live_row, dry_row)
+        verdict, why = _verdict(scfg, live_row, dry_row, name in test_only)
         verdicts.append(
             {
                 "strategy": name,
@@ -50,11 +52,13 @@ def analyze(conn: sqlite3.Connection, cfg: Config) -> dict:
     }
 
 
-def _verdict(scfg, live_row, dry_row) -> tuple[str, str]:
+def _verdict(scfg, live_row, dry_row, test_only: bool = False) -> tuple[str, str]:
     if scfg is None:
         return KILL, "plus aucune configuration, code orphelin"
     if not scfg.enabled:
         return KILL, "desactivee"
+    if test_only:
+        return WATCH, "strategie de validation, jamais promue en reel"
 
     if live_row and (live_row["revenue"] or live_row["cost"]):
         margin = live_row["margin"]

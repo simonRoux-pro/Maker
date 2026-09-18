@@ -40,7 +40,10 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
 
     runs = []
     plans = []
+    operator_tasks = []
     for name, strategy in registry.enabled(cfg).items():
+        for task in strategy.manifest.needs_operator:
+            operator_tasks.append({"strategy": name, "task": task})
         plans.append(strategy.plan(ctx).as_dict())
 
         # la simulation est rejouee a neuf a chaque cycle, sinon elle s'empile
@@ -66,7 +69,10 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
             lesson=None,
         )
 
-    analysis = analyze(conn, cfg)
+    test_only = frozenset(
+        name for name, strategy in registry.discover().items() if strategy.manifest.test_only
+    )
+    analysis = analyze(conn, cfg, test_only)
     proposals = propose(mem, analysis)
     pending = approvals.list_by_status(conn, "pending")
 
@@ -78,6 +84,7 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
         "analysis": analysis,
         "proposals": proposals,
         "pending_approvals": pending,
+        "operator_tasks": operator_tasks,
         "killswitch": killswitch.is_active(conn, cfg.guardrails),
     }
 
@@ -87,7 +94,8 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
     live_margin = cumulative_margin(conn, "live")["margin"]
     memory.end_cycle(mem, cycle, live_margin, str(path))
     log("cycle.end", cycle=cycle, live_margin=live_margin,
-        proposals=len(proposals), pending=len(pending))
+        proposals=len(proposals), pending=len(pending),
+        operator_tasks=len(operator_tasks))
 
     conn.close()
     mem.close()

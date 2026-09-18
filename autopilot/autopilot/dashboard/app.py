@@ -74,7 +74,17 @@ def snapshot() -> dict:
                 "recent": approvals.list_all(conn, limit=20),
             },
             "strategies": strategies,
-            "analysis": analyze(conn, cfg),
+            "analysis": analyze(
+                conn,
+                cfg,
+                frozenset(n for n, s in discovered.items() if s.manifest.test_only),
+            ),
+            "operator_tasks": [
+                {"strategy": name, "task": task}
+                for name, strategy in sorted(discovered.items())
+                if cfg.strategies.get(name) and cfg.strategies[name].enabled
+                for task in strategy.manifest.needs_operator
+            ],
             "cycles": memory.cycles(mem, limit=10),
             "audit": read_tail(30)[::-1],
         }
