@@ -8,10 +8,20 @@
 # route publique, et le tableau de bord affiche "No active routes" sans qu'on
 # sache si le deploiement a echoue ou si l'URL est simplement desactivee.
 #
-# Le secret de la marketplace se pose a part, depuis Settings du worker:
-#   RAPIDAPI_PROXY_SECRET
-# ou en ligne de commande:
-#   npx wrangler secret put RAPIDAPI_PROXY_SECRET
+# Le secret de la marketplace ne se met pas ici, un fichier versionne ne
+# contient jamais de secret.
+#
+# Piege du tableau de bord: il existe deux encadres "Variables and secrets",
+# celui du build et celui de l'execution. Une variable de build n'existe que
+# pendant la construction, le worker qui tourne ne la voit jamais.
+#
+# Pour supprimer l'ambiguite, la commande de deploiement recopie la variable
+# de build en secret d'execution a chaque fois:
+#
+#   echo "$RAPIDAPI_PROXY_SECRET" | npx wrangler secret put RAPIDAPI_PROXY_SECRET \
+#     && npx wrangler deploy
+#
+# Verification: /health renvoie protected: true quand le secret est actif.
 
 name = "maker"
 main = "worker.mjs"

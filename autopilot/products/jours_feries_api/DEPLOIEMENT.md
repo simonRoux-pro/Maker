@@ -74,9 +74,21 @@ je ne peux pas la faire: encaisser exige un titulaire verifie.
    Si l'import exige un fichier, prends `dist/openapi.json` de ce dossier.
 6. Reprends les textes de la section suivante.
 7. Cree les paliers tarifaires de la section suivante.
-8. La marketplace te donne un secret de proxy. Retour sur Cloudflare,
-   `Settings` du worker, `Variables and Secrets`, ajoute un secret nomme
-   `RAPIDAPI_PROXY_SECRET` avec cette valeur, puis redeploie.
+8. La marketplace te donne un secret de proxy. Retour sur Cloudflare, dans les
+   reglages de build du worker, ajoute une variable `RAPIDAPI_PROXY_SECRET`
+   de type Secret avec cette valeur, et mets cette commande de deploiement:
+
+   ```
+   echo "$RAPIDAPI_PROXY_SECRET" | npx wrangler secret put RAPIDAPI_PROXY_SECRET && npx wrangler deploy
+   ```
+
+   Attention au piege: le tableau de bord a deux encadres "Variables and
+   secrets", celui du build et celui de l'execution. Une variable de build
+   n'existe que pendant la construction et le worker ne la voit pas. La
+   commande ci-dessus recopie l'une dans l'autre a chaque deploiement, ce qui
+   evite d'avoir a choisir le bon encadre.
+
+   Verification: `/health` renvoie `protected: true` une fois le secret actif.
 
 Cette derniere etape n'est pas un detail: sans elle, n'importe qui appelle
 l'URL du worker directement et la facturation ne sert a rien.
