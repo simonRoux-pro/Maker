@@ -7,7 +7,7 @@ estimated_monthly_cost = 0.0
 platforms = ["rapidapi"]
 apis = ["cloudflare-workers"]
 needs_operator = [
-  "creer le compte Cloudflare, plan gratuit, sans carte bancaire",
+  "creer le compte Cloudflare puis coller products/jours_feries_api/dist/worker.bundle.mjs dans l'editeur du tableau de bord, plan gratuit sans carte bancaire",
   "creer le compte fournisseur sur la marketplace d'APIs et y renseigner l'identite et le formulaire fiscal",
-  "relier ce compte au PayPal pour les versements",
+  "relier ce compte au PayPal pour les versements, puis poser le secret RAPIDAPI_PROXY_SECRET sur le worker",
 ]

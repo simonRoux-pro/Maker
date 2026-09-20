@@ -5,7 +5,8 @@
   "type": "module",
   "description": "API jours feries, jours ouvres et delais en droit francais. Zero dependance.",
   "scripts": {
-    "test": "node --test \"test/*.test.mjs\"",
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test \"test/*.test.mjs\"",
     "start": "node server.mjs",
     "deploy": "npx wrangler deploy"
   }

@@ -105,6 +105,8 @@ class JoursFeriesApi(Strategy):
             estimated_revenue=first["net"],
             notes=[
                 f"produit pret et teste dans {PRODUCT_DIR}",
+                f"deploiement sans outil: coller {PRODUCT_DIR}/dist/worker.bundle.mjs "
+                f"dans l'editeur Cloudflare, voir {PRODUCT_DIR}/DEPLOIEMENT.md",
                 "revenu nul tant que la fiche n'est pas publiee",
                 "commission marketplace 25 pourcent, frais de versement 2 pourcent",
                 "les versements arrivent avec environ deux mois de decalage",
@@ -178,9 +180,10 @@ class JoursFeriesApi(Strategy):
                 estimated_cost=0.0,
                 risk="low",
                 payload={
-                    "commande": "npx wrangler deploy",
-                    "dossier": PRODUCT_DIR,
-                    "puis": "npx wrangler secret put RAPIDAPI_PROXY_SECRET",
+                    "marche_a_suivre": f"{PRODUCT_DIR}/DEPLOIEMENT.md",
+                    "fichier_a_coller": f"{PRODUCT_DIR}/dist/worker.bundle.mjs",
+                    "ou_en_ligne_de_commande": "npx wrangler deploy",
+                    "puis": "poser le secret RAPIDAPI_PROXY_SECRET sur le worker",
                 },
             ),
             RealAction(

@@ -67,6 +67,13 @@ de repondre a cote.
 Cloudflare Workers, plan gratuit, 100 000 requetes par jour, sans carte
 bancaire.
 
+Sans aucun outil a installer: `node build.mjs` produit
+`dist/worker.bundle.mjs`, un fichier unique de 25 ko a coller dans l'editeur du
+tableau de bord Cloudflare. Marche a suivre detaillee, textes de la fiche et
+paliers tarifaires dans `DEPLOIEMENT.md`.
+
+Avec la ligne de commande, si elle est deja installee:
+
 ```bash
 npx wrangler deploy
 npx wrangler secret put RAPIDAPI_PROXY_SECRET   # ferme l'acces direct
