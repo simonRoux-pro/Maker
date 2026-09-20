@@ -1,3 +1,3 @@
-from .strategy import STRATEGY, JoursFeriesApi, project
+from .strategy import ASSUMPTIONS, STRATEGY, TIERS, JoursFeriesApi, project
 
-__all__ = ["STRATEGY", "JoursFeriesApi", "project"]
+__all__ = ["ASSUMPTIONS", "STRATEGY", "TIERS", "JoursFeriesApi", "project"]

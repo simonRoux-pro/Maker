@@ -41,6 +41,11 @@ enabled = {enabled}
 mode = "{mode}"
 budget = {budget}
 {options}
+
+[identifiants_api]
+enabled = {enabled}
+mode = "{mode}"
+budget = {budget}
 """
 
 

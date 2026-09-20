@@ -1,0 +1,13 @@
+[strategy]
+name = "identifiants_api"
+summary = "API de validation des identifiants France et SEPA: IBAN, cle RIB, SIREN, SIRET et TVA intracommunautaire. Produit dans products/identifiants_api, pur calcul, sans base de donnees."
+risk = "low"
+estimated_setup_cost = 0.0
+estimated_monthly_cost = 0.0
+platforms = ["rapidapi"]
+apis = ["cloudflare-workers"]
+needs_operator = [
+  "creer un second worker Cloudflare relie a GitHub, repertoire racine products/identifiants_api, plan gratuit",
+  "publier la fiche sur la marketplace, le compte fournisseur existe deja",
+  "poser le secret RAPIDAPI_PROXY_SECRET en variable de build du nouveau worker",
+]

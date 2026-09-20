@@ -1,0 +1,20 @@
+# Deploiement Cloudflare Workers. Aucun secret ici.
+#
+# name doit etre identique au nom de l'application Cloudflare qui lance le
+# build, sinon le deploiement est rejete pour cause de nom different.
+#
+# Le secret de la marketplace se pose en variable de build, et la commande de
+# deploiement le recopie en secret d'execution:
+#
+#   echo "$RAPIDAPI_PROXY_SECRET" | npx wrangler secret put RAPIDAPI_PROXY_SECRET \
+#     && npx wrangler deploy
+#
+# Verification: /health renvoie protected: true quand le secret est actif.
+
+name = "identifiants"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[observability]
+enabled = true

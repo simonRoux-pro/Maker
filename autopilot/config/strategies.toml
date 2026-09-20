@@ -26,3 +26,12 @@ studio_url = "https://rapidapi.com/studio/api_7901aa7c-40f1-48c8-88f9-41ab8dd761
 api_id = "api_7901aa7c-40f1-48c8-88f9-41ab8dd761e5"
 # versements: PayPal, environ deux mois apres la transaction
 payout_account = "paypal"
+
+[identifiants_api]
+enabled = true
+mode = "dry_run"
+budget = 0.0
+# a completer une fois le worker cree et la fiche publiee
+base_url = ""
+listing_url = ""
+proxy_secret_set = false

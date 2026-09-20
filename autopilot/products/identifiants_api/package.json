@@ -1,0 +1,13 @@
+{
+  "name": "identifiants-france-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Validation IBAN, cle RIB, SIREN, SIRET et TVA intracommunautaire. Zero dependance.",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test \"test/*.test.mjs\"",
+    "start": "node server.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}

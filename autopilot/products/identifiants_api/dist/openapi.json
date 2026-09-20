@@ -1,0 +1,225 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Validation des identifiants France et SEPA",
+    "version": "1.0.0",
+    "description": "IBAN zone SEPA, cle RIB francaise, SIREN, SIRET et TVA intracommunautaire. Validation formelle par calcul de cle, sans base de donnees ni appel externe. Cette API ne dit jamais si une entreprise ou un compte existe."
+  },
+  "paths": {
+    "/v1/iban": {
+      "get": {
+        "summary": "Valider un IBAN de la zone SEPA",
+        "parameters": [
+          {
+            "name": "iban",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FR1420041010050500013M02606"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "validite, pays et BBAN"
+          }
+        }
+      }
+    },
+    "/v1/rib": {
+      "get": {
+        "summary": "Calculer ou verifier une cle RIB francaise",
+        "description": "Sans le parametre key, la cle est calculee. Avec, elle est verifiee.",
+        "parameters": [
+          {
+            "name": "bank",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20041"
+          },
+          {
+            "name": "branch",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "01005"
+          },
+          {
+            "name": "account",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0500013M026"
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "06"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "cle calculee ou verdict"
+          }
+        }
+      }
+    },
+    "/v1/siren": {
+      "get": {
+        "summary": "Valider un SIREN",
+        "parameters": [
+          {
+            "name": "siren",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "732829320"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "validite"
+          }
+        }
+      }
+    },
+    "/v1/siret": {
+      "get": {
+        "summary": "Valider un SIRET",
+        "description": "Gere l'exception La Poste, dont les SIRET ne suivent pas Luhn.",
+        "parameters": [
+          {
+            "name": "siret",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "35600000009075"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "validite, SIREN et NIC"
+          }
+        }
+      }
+    },
+    "/v1/vat": {
+      "get": {
+        "summary": "Valider un numero de TVA intracommunautaire",
+        "description": "Cle recalculee pour la France. Pour les 26 autres Etats membres, seule la forme est verifiee, et la reponse le dit dans le champ checked.",
+        "parameters": [
+          {
+            "name": "vat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FR44732829320"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "validite et niveau de verification"
+          }
+        }
+      }
+    },
+    "/v1/vat-from-siren": {
+      "get": {
+        "summary": "Calculer le numero de TVA francais a partir d'un SIREN",
+        "parameters": [
+          {
+            "name": "siren",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "732829320"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "numero de TVA"
+          }
+        }
+      }
+    },
+    "/v1/reference": {
+      "get": {
+        "summary": "Pays couverts et niveau de verification",
+        "responses": {
+          "200": {
+            "description": "reference"
+          }
+        }
+      }
+    },
+    "/v1/batch": {
+      "post": {
+        "summary": "Jusqu'a 100 validations en un appel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operations": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "iban",
+                            "siren",
+                            "siret",
+                            "vat",
+                            "vat-from-siren",
+                            "rib",
+                            "reference"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "un resultat par operation, erreurs isolees"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://identifiants.pro-simon-roux.workers.dev",
+      "description": "production"
+    }
+  ]
+}

@@ -39,7 +39,7 @@ class TestCycle(IsolatedCase):
         self.assertTrue(history)
         self.assertEqual(
             {row["strategy"] for row in history},
-            {"hello_revenue", "jours_feries_api"},
+            {"hello_revenue", "jours_feries_api", "identifiants_api"},
         )
         self.assertEqual(len(memory.cycles(mem)), 1)
         mem.close()
@@ -63,7 +63,11 @@ class TestCycle(IsolatedCase):
         summary = cycle.run()
         tasks = summary["operator_tasks"]
         self.assertTrue(tasks)
-        self.assertTrue(all(t["strategy"] == "jours_feries_api" for t in tasks))
+        # seules les strategies vendeuses en demandent, jamais celle de test
+        self.assertEqual(
+            {t["strategy"] for t in tasks},
+            {"jours_feries_api", "identifiants_api"},
+        )
 
     def test_implemented_backlog_entry_is_not_reproposed(self):
         summary = cycle.run()
@@ -84,3 +88,26 @@ class TestCycle(IsolatedCase):
                     "strategies", "analysis", "killswitch", "audit"):
             self.assertIn(key, state)
         self.assertFalse(state["killswitch"]["active"])
+
+
+class TestReportCommand(IsolatedCase):
+    def test_report_never_promotes_a_test_strategy(self):
+        from autopilot.cli import main
+
+        cycle.run()
+        self.assertEqual(main(["report"]), 0)
+
+        from autopilot.config import load
+        from autopilot.ledger import connect
+        from autopilot.orchestrator import analyze
+        from autopilot.strategies import registry
+
+        conn = connect()
+        test_only = frozenset(
+            n for n, s in registry.discover().items() if s.manifest.test_only
+        )
+        verdicts = {
+            r["strategy"]: r["verdict"] for r in analyze(conn, load(), test_only)["strategies"]
+        }
+        self.assertEqual(verdicts["hello_revenue"], "observer")
+        conn.close()

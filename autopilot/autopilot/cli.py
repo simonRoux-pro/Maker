@@ -125,7 +125,10 @@ def cmd_report(args) -> int:
         if series:
             last = series[-1]
             print(f"  dernier jour {last['day']}: cumul {_eur(last['cumulative'])}")
-    verdicts = analyze(conn, cfg)
+    test_only = frozenset(
+        name for name, strategy in registry.discover().items() if strategy.manifest.test_only
+    )
+    verdicts = analyze(conn, cfg, test_only)
     print("verdicts:")
     for row in verdicts["strategies"]:
         print(f"  {row['strategy']}: {row['verdict']} ({row['why']})")
