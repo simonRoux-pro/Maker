@@ -58,6 +58,15 @@ describe("routes", () => {
     assert.equal(status, 200);
     assert.equal(body.status, "ok");
   });
+
+  it("dit si le verrou est actif, sans jamais donner la valeur", async () => {
+    const ouvert = await call("/health");
+    assert.equal(ouvert.body.protected, false);
+
+    const ferme = await call("/health", { env: { RAPIDAPI_PROXY_SECRET: "s3cret" } });
+    assert.equal(ferme.body.protected, true);
+    assert.equal(JSON.stringify(ferme.body).includes("s3cret"), false);
+  });
 });
 
 describe("erreurs", () => {

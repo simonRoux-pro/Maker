@@ -571,9 +571,18 @@ export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/+$/, "") || "/";
 
-  if (path === "/health") return json({ status: "ok" }, { cache: "no-store" });
-
   const secret = env.RAPIDAPI_PROXY_SECRET;
+
+  // /health reste accessible sans secret: c'est la sonde de la marketplace,
+  // et le seul moyen de savoir si le verrou est actif sans avoir a deviner.
+  // Elle dit si un secret est configure, jamais sa valeur.
+  if (path === "/health") {
+    return json(
+      { status: "ok", protected: Boolean(secret) },
+      { cache: "no-store" },
+    );
+  }
+
   if (secret && request.headers.get("X-RapidAPI-Proxy-Secret") !== secret) {
     return fail("acces refuse, passe par la marketplace", 403);
   }
