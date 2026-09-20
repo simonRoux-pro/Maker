@@ -6,7 +6,25 @@ Les libelles exacts des menus peuvent avoir bouge depuis la redaction: cette
 machine n'a pas acces a Cloudflare ni a la marketplace pour verifier. L'intention
 de chaque etape reste la meme.
 
-## Etape 1, Cloudflare, environ 5 minutes
+## Etape 1, Cloudflare: fait le 20 septembre 2026
+
+L'API est en ligne sur https://maker.pro-simon-roux.workers.dev, palier
+gratuit, cout 0 euro. Le deploiement se fait depuis GitHub: chaque push sur la
+branche `claude/autopilot-revenue-system-p8k3o1` redeploie tout seul, avec
+`autopilot/products/jours_feries_api` comme repertoire racine.
+
+Verification rapide:
+
+```
+https://maker.pro-simon-roux.workers.dev/v1/zones
+https://maker.pro-simon-roux.workers.dev/v1/deadline?from=2026-05-07&delay=1&calendar=calendaires
+```
+
+La marche a suivre d'origine est conservee ci-dessous, au cas ou il faudrait
+repartir de zero sur un autre compte.
+
+<details>
+<summary>Deploiement manuel, si besoin un jour</summary>
 
 Plan gratuit, sans carte bancaire.
 
@@ -29,7 +47,7 @@ https://TON-URL/v1/deadline?from=2026-05-07&delay=1&calendar=calendaires
 Le second doit repondre `"deadline": "2026-05-11"`, parce que le 8 mai est
 ferie. Si ces deux URLs repondent, le produit est en ligne.
 
-Colle-moi l'URL, je m'occupe du reste de la configuration.
+</details>
 
 ## Etape 2, le compte fournisseur sur la marketplace
 
@@ -40,7 +58,12 @@ je ne peux pas la faire: encaisser exige un titulaire verifie.
 2. Renseigne identite, adresse et formulaire fiscal.
 3. Dans les reglages de versement, choisis PayPal et mets
    `pro.simon.roux@gmail.com`. Les versements ne se font que par PayPal.
-4. Ajoute une API, en mettant l'URL du worker comme URL de base.
+4. Ajoute une API, avec comme URL de base:
+
+   ```
+   https://maker.pro-simon-roux.workers.dev
+   ```
+
 5. Importe `openapi.json` de ce dossier: les endpoints et les parametres se
    remplissent tout seuls.
 6. Reprends les textes de la section suivante.

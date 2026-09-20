@@ -17,10 +17,10 @@ from .. import approvals, memory
 from ..audit import read_tail
 from ..config import load
 from ..guardrails import budget, killswitch
-from ..ledger import connect
+from ..ledger import Ledger, connect
 from ..ledger.queries import cumulative_margin, daily_series, margin_by_strategy
 from ..orchestrator import analyze
-from ..strategies import registry
+from ..strategies import Context, registry
 
 TEMPLATE = Path(__file__).parent / "templates" / "index.html"
 
@@ -29,6 +29,7 @@ def snapshot() -> dict:
     cfg = load()
     conn = connect()
     mem = memory.connect()
+    ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
     try:
         strategies = []
         discovered = registry.discover()
@@ -83,7 +84,7 @@ def snapshot() -> dict:
                 {"strategy": name, "task": task}
                 for name, strategy in sorted(discovered.items())
                 if cfg.strategies.get(name) and cfg.strategies[name].enabled
-                for task in strategy.manifest.needs_operator
+                for task in strategy.operator_tasks(ctx)
             ],
             "cycles": memory.cycles(mem, limit=10),
             "audit": read_tail(30)[::-1],

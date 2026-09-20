@@ -40,6 +40,7 @@ budget = {budget}
 enabled = {enabled}
 mode = "{mode}"
 budget = {budget}
+{options}
 """
 
 
@@ -56,6 +57,8 @@ class IsolatedCase(unittest.TestCase):
     enabled = "true"
     mode = "dry_run"
     strategy_budget = 0.0
+    # lignes TOML supplementaires pour jours_feries_api, par exemple base_url
+    strategy_options = ""
 
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
@@ -77,7 +80,10 @@ class IsolatedCase(unittest.TestCase):
         )
         (root / "config" / "strategies.toml").write_text(
             STRATEGIES.format(
-                enabled=self.enabled, mode=self.mode, budget=self.strategy_budget
+                enabled=self.enabled,
+                mode=self.mode,
+                budget=self.strategy_budget,
+                options=self.strategy_options,
             ),
             encoding="utf-8",
         )

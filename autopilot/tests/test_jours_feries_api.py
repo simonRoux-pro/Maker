@@ -126,3 +126,70 @@ class TestStrategyLiveAllowed(IsolatedCase):
         self.assertEqual(len(pending), 2)
         self.assertEqual({p["kind"] for p in pending}, {"publish"})
         conn.close()
+
+
+class TestStrategyDeployed(IsolatedCase):
+    """Une fois l'API en ligne, le systeme ne doit plus reclamer son deploiement."""
+
+    mode = "live"
+    platforms = ["rapidapi"]
+    apis = ["cloudflare-workers"]
+    strategy_options = 'base_url = "https://maker.example.workers.dev"'
+
+    def _ctx(self):
+        cfg = load()
+        conn = connect()
+        return cfg, conn, Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+
+    def test_deployment_is_read_from_the_configuration(self):
+        cfg, conn, ctx = self._ctx()
+        strategy = registry.discover()[NAME]
+        self.assertEqual(strategy.deployed(ctx), "https://maker.example.workers.dev")
+        self.assertIsNone(strategy.listed(ctx))
+        conn.close()
+
+    def test_operator_is_no_longer_asked_to_deploy(self):
+        cfg, conn, ctx = self._ctx()
+        tasks = registry.discover()[NAME].operator_tasks(ctx)
+        self.assertFalse(any("Cloudflare" in t for t in tasks))
+        self.assertTrue(any("compte fournisseur" in t for t in tasks))
+        conn.close()
+
+    def test_only_the_listing_remains_to_be_done(self):
+        cfg, conn, ctx = self._ctx()
+        result = registry.discover()[NAME].execute(ctx)
+        self.assertEqual(len(result.pending_approvals), 1)
+        pending = approvals.list_by_status(conn, "pending")
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0]["platform"], "rapidapi")
+        self.assertEqual(
+            pending[0]["payload"]["base_url"], "https://maker.example.workers.dev"
+        )
+        conn.close()
+
+    def test_plan_shows_the_api_as_online(self):
+        cfg, conn, ctx = self._ctx()
+        plan = registry.discover()[NAME].plan(ctx)
+        self.assertIn("en ligne", plan.steps[0].label)
+        self.assertFalse(plan.steps[0].external)
+        conn.close()
+
+
+class TestSecretReminder(IsolatedCase):
+    """Fiche publiee mais secret absent: l'API est appelable hors facturation."""
+
+    mode = "live"
+    strategy_options = (
+        'base_url = "https://maker.example.workers.dev"\n'
+        'listing_url = "https://marketplace.example/api/jours-feries"\n'
+        "proxy_secret_set = false"
+    )
+
+    def test_the_missing_secret_is_raised(self):
+        cfg = load()
+        conn = connect()
+        ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+        tasks = registry.discover()[NAME].operator_tasks(ctx)
+        self.assertEqual(len(tasks), 1)
+        self.assertIn("RAPIDAPI_PROXY_SECRET", tasks[0])
+        conn.close()

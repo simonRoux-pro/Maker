@@ -42,7 +42,7 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
     plans = []
     operator_tasks = []
     for name, strategy in registry.enabled(cfg).items():
-        for task in strategy.manifest.needs_operator:
+        for task in strategy.operator_tasks(ctx):
             operator_tasks.append({"strategy": name, "task": task})
         plans.append(strategy.plan(ctx).as_dict())
 

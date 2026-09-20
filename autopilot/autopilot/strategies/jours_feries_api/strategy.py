@@ -76,37 +76,71 @@ class JoursFeriesApi(Strategy):
     def _day(self, ctx: Context) -> str:
         return ctx.day or date.today().isoformat()
 
+    def _options(self, ctx: Context) -> dict:
+        scfg = ctx.cfg.strategies.get(self.name)
+        return dict(scfg.options) if scfg else {}
+
+    def deployed(self, ctx: Context) -> str | None:
+        """URL de l'API si elle est en ligne, sinon None."""
+        return self._options(ctx).get("base_url") or None
+
+    def listed(self, ctx: Context) -> str | None:
+        return self._options(ctx).get("listing_url") or None
+
+    def operator_tasks(self, ctx: Context) -> list[str]:
+        tasks = []
+        if not self.deployed(ctx):
+            tasks.append(self.manifest.needs_operator[0])
+        if not self.listed(ctx):
+            tasks.append(self.manifest.needs_operator[1])
+            tasks.append(self.manifest.needs_operator[2])
+        elif not self._options(ctx).get("proxy_secret_set"):
+            tasks.append(
+                "poser le secret RAPIDAPI_PROXY_SECRET sur le worker, sans quoi "
+                "l'API est appelable hors facturation"
+            )
+        return tasks
+
     def plan(self, ctx: Context) -> Plan:
         first = project(1)[0]
-        return Plan(
-            strategy=self.name,
-            steps=[
+        base_url = self.deployed(ctx)
+        steps = []
+        if base_url:
+            steps.append(
+                Step("API deployee et en ligne", note=f"{base_url}, cout 0 EUR")
+            )
+        else:
+            steps.append(
                 Step(
                     "deployer le worker sur Cloudflare, plan gratuit",
                     external=True,
                     note="demande un compte Cloudflare, sans carte bancaire",
-                ),
-                Step(
-                    "poser le secret de proxy pour fermer l'acces direct",
-                    external=True,
-                    note="sans ca, l'URL est appelable hors facturation",
-                ),
-                Step(
-                    "publier la fiche et les paliers tarifaires sur la marketplace",
-                    external=True,
-                    note="demande un compte fournisseur a ton nom",
-                ),
-                Step(
-                    "relever les appels et les abonnements chaque cycle",
-                    note="remplace les hypotheses par des mesures",
-                ),
-            ],
+                )
+            )
+        steps += [
+            Step(
+                "publier la fiche et les paliers tarifaires sur la marketplace",
+                external=True,
+                note="demande un compte fournisseur a ton nom",
+            ),
+            Step(
+                "poser le secret de proxy pour fermer l'acces direct",
+                external=True,
+                note="la marketplace fournit sa valeur, donc apres la fiche",
+            ),
+            Step(
+                "relever les appels et les abonnements chaque cycle",
+                note="remplace les hypotheses par des mesures",
+            ),
+        ]
+        return Plan(
+            strategy=self.name,
+            steps=steps,
             estimated_cost=ASSUMPTIONS["hosting_cost_eur"],
             estimated_revenue=first["net"],
             notes=[
                 f"produit pret et teste dans {PRODUCT_DIR}",
-                f"deploiement sans outil: coller {PRODUCT_DIR}/dist/worker.bundle.mjs "
-                f"dans l'editeur Cloudflare, voir {PRODUCT_DIR}/DEPLOIEMENT.md",
+                f"en ligne: {base_url}" if base_url else "pas encore deployee",
                 "revenu nul tant que la fiche n'est pas publiee",
                 "commission marketplace 25 pourcent, frais de versement 2 pourcent",
                 "les versements arrivent avec environ deux mois de decalage",
@@ -171,21 +205,24 @@ class JoursFeriesApi(Strategy):
         la liste blanche."""
         result = RunResult(strategy=self.name, mode="live")
 
-        actions = [
-            RealAction(
-                strategy=self.name,
-                kind="publish",
-                summary="deployer l'API sur Cloudflare Workers, plan gratuit",
-                api="cloudflare-workers",
-                estimated_cost=0.0,
-                risk="low",
-                payload={
-                    "marche_a_suivre": f"{PRODUCT_DIR}/DEPLOIEMENT.md",
-                    "fichier_a_coller": f"{PRODUCT_DIR}/dist/worker.bundle.mjs",
-                    "ou_en_ligne_de_commande": "npx wrangler deploy",
-                    "puis": "poser le secret RAPIDAPI_PROXY_SECRET sur le worker",
-                },
-            ),
+        actions = []
+        if not self.deployed(ctx):
+            actions.append(
+                RealAction(
+                    strategy=self.name,
+                    kind="publish",
+                    summary="deployer l'API sur Cloudflare Workers, plan gratuit",
+                    api="cloudflare-workers",
+                    estimated_cost=0.0,
+                    risk="low",
+                    payload={
+                        "marche_a_suivre": f"{PRODUCT_DIR}/DEPLOIEMENT.md",
+                        "fichier_a_coller": f"{PRODUCT_DIR}/dist/worker.bundle.mjs",
+                        "ou_en_ligne_de_commande": "npx wrangler deploy",
+                    },
+                )
+            )
+        actions.append(
             RealAction(
                 strategy=self.name,
                 kind="publish",
@@ -194,15 +231,16 @@ class JoursFeriesApi(Strategy):
                 estimated_cost=0.0,
                 risk="medium",
                 payload={
+                    "base_url": self.deployed(ctx),
                     "paliers": [
                         {"nom": "Basic", "prix_eur": 0.0, "quota_mensuel": 500},
                         {"nom": "Pro", "prix_eur": 9.0, "quota_mensuel": 20000},
                         {"nom": "Ultra", "prix_eur": 29.0, "quota_mensuel": 200000},
                     ],
-                    "openapi": f"{PRODUCT_DIR}/openapi.json",
+                    "textes": f"{PRODUCT_DIR}/DEPLOIEMENT.md",
                 },
-            ),
-        ]
+            )
+        )
 
         for action in actions:
             decision = self.request(ctx, action)
@@ -217,7 +255,9 @@ class JoursFeriesApi(Strategy):
     def report(self, ctx: Context) -> str:
         from ...ledger.queries import margin_by_strategy
 
+        base_url = self.deployed(ctx)
         lines = [f"{self.name}: {self.manifest.summary}"]
+        lines.append(f"  API: {base_url}" if base_url else "  API: pas encore deployee")
         for mode in ("live", "dry_run"):
             rows = [r for r in margin_by_strategy(ctx.conn, mode) if r["strategy"] == self.name]
             if rows:
@@ -228,7 +268,7 @@ class JoursFeriesApi(Strategy):
                 )
             else:
                 lines.append(f"  {mode}: aucune ecriture")
-        for need in self.manifest.needs_operator:
+        for need in self.operator_tasks(ctx):
             lines.append(f"  demande Simon: {need}")
         return "\n".join(lines)
 

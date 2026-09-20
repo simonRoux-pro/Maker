@@ -1,6 +1,9 @@
 # Strategies activees et leur mode.
 #   dry_run : simulation, aucune action externe, aucune depense
 #   live    : actions reelles, soumises aux garde-fous et a la file d'approbation
+#
+# Les cles autres que enabled, mode et budget sont des options libres, lues par
+# la strategie concernee. Elles decrivent l'etat du monde, pas du code.
 
 [hello_revenue]
 enabled = true
@@ -11,3 +14,9 @@ budget = 0.0
 enabled = true
 mode = "dry_run"
 budget = 0.0
+# deploye le 2026-09-20 sur le palier gratuit Cloudflare Workers, cout 0 EUR
+base_url = "https://maker.pro-simon-roux.workers.dev"
+# passera a true une fois le secret de proxy pose sur le worker
+proxy_secret_set = false
+# identifiant de la fiche sur la marketplace, vide tant qu'elle n'existe pas
+listing_url = ""

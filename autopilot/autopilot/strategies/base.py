@@ -115,6 +115,15 @@ class Strategy(abc.ABC):
     def report(self, ctx: Context) -> str:
         ...
 
+    def operator_tasks(self, ctx: Context) -> list[str]:
+        """Ce qui demande encore une identite verifiee.
+
+        Par defaut, tout ce que declare le manifeste. Une strategie qui sait
+        qu'une etape est faite la retire, pour ne pas reclamer indefiniment
+        quelque chose qui est deja en place.
+        """
+        return list(self.manifest.needs_operator)
+
     # utilitaire partage: demande d'autorisation au gate
     def request(self, ctx: Context, action: RealAction, *, approval_id: int | None = None):
         from ..guardrails import gate

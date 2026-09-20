@@ -66,6 +66,9 @@ class StrategyConfig:
     enabled: bool
     mode: str
     budget: float
+    # tout ce qui n'est pas enabled, mode ou budget: etat de deploiement,
+    # URL de base, identifiants de fiche. Lu par la strategie concernee.
+    options: dict = field(default_factory=dict)
 
     @property
     def is_live(self) -> bool:
@@ -160,6 +163,10 @@ def load(config_path: Path | None = None, strategies_path: Path | None = None) -
                 enabled=bool(block.get("enabled", False)),
                 mode=mode,
                 budget=sbudget,
+                options={
+                    k: v for k, v in block.items()
+                    if k not in ("enabled", "mode", "budget")
+                },
             )
 
     return Config(guardrails=guardrails, strategies=strategies)
