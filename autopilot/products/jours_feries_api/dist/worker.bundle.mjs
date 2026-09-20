@@ -416,11 +416,14 @@ const JSON_HEADERS = {
 const CACHE_LONG = "public, max-age=86400";
 const MAX_BATCH = 100;
 
-function json(payload, { status = 200, cache = CACHE_LONG } = {}) {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: { ...JSON_HEADERS, "Cache-Control": cache },
-  });
+function json(payload, { status = 200, cache = CACHE_LONG, filename = null } = {}) {
+  const headers = { ...JSON_HEADERS, "Cache-Control": cache };
+  if (filename) {
+    // force le telechargement au lieu de l'affichage: c'est la seule facon
+    // simple de recuperer le fichier depuis un telephone
+    headers["Content-Disposition"] = `attachment; filename="${filename}"`;
+  }
+  return new Response(JSON.stringify(payload), { status, headers });
 }
 
 function fail(message, status = 400) {
@@ -576,7 +579,13 @@ export async function handleRequest(request, env = {}) {
   }
 
   if (path === "/") return json(ROOT);
-  if (path === "/openapi.json") return json(openapiFor(url));
+  if (path === "/openapi.json") {
+    // ?download=1 renvoie le meme contenu, mais en piece jointe
+    const download = url.searchParams.get("download");
+    return json(openapiFor(url), {
+      filename: download && download !== "0" ? "openapi.json" : null,
+    });
+  }
 
   if (path === "/v1/batch") {
     if (request.method !== "POST") return fail("utilise POST sur /v1/batch", 405);

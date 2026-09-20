@@ -221,3 +221,23 @@ describe("specification openapi", () => {
     assert.deepEqual(documented, served);
   });
 });
+
+describe("telechargement de la specification", () => {
+  it("s'affiche par defaut", async () => {
+    const { headers } = await call("/openapi.json");
+    assert.equal(headers.get("Content-Disposition"), null);
+  });
+
+  it("se telecharge avec download=1", async () => {
+    const { status, headers, body } = await call("/openapi.json?download=1");
+    assert.equal(status, 200);
+    assert.equal(headers.get("Content-Disposition"), 'attachment; filename="openapi.json"');
+    assert.equal(body.openapi, "3.0.3");
+  });
+
+  it("garde le meme contenu dans les deux cas", async () => {
+    const affiche = await call("/openapi.json");
+    const telecharge = await call("/openapi.json?download=1");
+    assert.deepEqual(telecharge.body, affiche.body);
+  });
+});
