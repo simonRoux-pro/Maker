@@ -4,6 +4,10 @@
 # build, sinon le deploiement est rejete pour cause de nom different.
 # L'application creee depuis le tableau de bord s'appelle "maker".
 #
+# workers_dev est explicite: sans lui, un worker peut se deployer sans aucune
+# route publique, et le tableau de bord affiche "No active routes" sans qu'on
+# sache si le deploiement a echoue ou si l'URL est simplement desactivee.
+#
 # Le secret de la marketplace se pose a part, depuis Settings du worker:
 #   RAPIDAPI_PROXY_SECRET
 # ou en ligne de commande:
@@ -12,6 +16,7 @@
 name = "maker"
 main = "worker.mjs"
 compatibility_date = "2026-09-01"
+workers_dev = true
 
 [observability]
 enabled = true
