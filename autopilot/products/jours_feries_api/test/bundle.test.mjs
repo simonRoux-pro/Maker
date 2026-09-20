@@ -47,3 +47,14 @@ describe("bundle a coller", () => {
     assert.equal(res.status, 403);
   });
 });
+
+describe("specification generee", () => {
+  it("existe avec l'URL de production", () => {
+    const spec = JSON.parse(
+      readFileSync(new URL("../dist/openapi.json", import.meta.url), "utf8"),
+    );
+    assert.equal(spec.servers[0].url, "https://maker.pro-simon-roux.workers.dev");
+    assert.equal(spec.openapi, "3.0.3");
+    assert.ok(spec.paths["/v1/deadline"]);
+  });
+});

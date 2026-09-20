@@ -64,8 +64,14 @@ je ne peux pas la faire: encaisser exige un titulaire verifie.
    https://maker.pro-simon-roux.workers.dev
    ```
 
-5. Importe `openapi.json` de ce dossier: les endpoints et les parametres se
-   remplissent tout seuls.
+5. Importe la specification, les endpoints et les parametres se remplissent
+   tout seuls. Le plus simple est de donner l'URL, sans telecharger de fichier:
+
+   ```
+   https://maker.pro-simon-roux.workers.dev/openapi.json
+   ```
+
+   Si l'import exige un fichier, prends `dist/openapi.json` de ce dossier.
 6. Reprends les textes de la section suivante.
 7. Cree les paliers tarifaires de la section suivante.
 8. La marketplace te donne un secret de proxy. Retour sur Cloudflare,

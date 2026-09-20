@@ -1,0 +1,439 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Jours feries et delais France",
+    "version": "1.0.0",
+    "description": "Jours feries legaux francais, jours ouvres et ouvrables, arithmetique de dates et calcul d'echeances avec report au premier jour ouvrable suivant."
+  },
+  "paths": {
+    "/v1/holidays": {
+      "get": {
+        "summary": "Jours feries legaux d'une annee",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1982,
+              "maximum": 2100
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "metropole",
+                "alsace-moselle",
+                "guadeloupe",
+                "saint-martin",
+                "saint-barthelemy",
+                "martinique",
+                "guyane",
+                "reunion",
+                "mayotte"
+              ],
+              "default": "metropole"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "liste triee"
+          }
+        }
+      }
+    },
+    "/v1/business-day": {
+      "get": {
+        "summary": "Un jour est-il ouvre",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ouvres",
+                "ouvrables",
+                "calendaires"
+              ]
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "metropole",
+                "alsace-moselle",
+                "guadeloupe",
+                "saint-martin",
+                "saint-barthelemy",
+                "martinique",
+                "guyane",
+                "reunion",
+                "mayotte"
+              ]
+            }
+          },
+          {
+            "name": "closed",
+            "in": "query",
+            "description": "dates de fermeture propres a l'entreprise, separees par des virgules",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "verdict et motif"
+          }
+        }
+      }
+    },
+    "/v1/add": {
+      "get": {
+        "summary": "Ajouter ou retirer des jours",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ouvres",
+                "ouvrables",
+                "calendaires"
+              ]
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "metropole",
+                "alsace-moselle",
+                "guadeloupe",
+                "saint-martin",
+                "saint-barthelemy",
+                "martinique",
+                "guyane",
+                "reunion",
+                "mayotte"
+              ]
+            }
+          },
+          {
+            "name": "closed",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "date resultat"
+          }
+        }
+      }
+    },
+    "/v1/count": {
+      "get": {
+        "summary": "Compter les jours entre deux dates",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ouvres",
+                "ouvrables",
+                "calendaires"
+              ]
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "metropole",
+                "alsace-moselle",
+                "guadeloupe",
+                "saint-martin",
+                "saint-barthelemy",
+                "martinique",
+                "guyane",
+                "reunion",
+                "mayotte"
+              ]
+            }
+          },
+          {
+            "name": "inclusive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "compte"
+          }
+        }
+      }
+    },
+    "/v1/deadline": {
+      "get": {
+        "summary": "Echeance d'un delai, avec report legal",
+        "description": "unit=months applique l'article 641 du code de procedure civile, rollover=next_business_day applique l'article 642.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "delay",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "days",
+                "months",
+                "years"
+              ],
+              "default": "days"
+            }
+          },
+          {
+            "name": "calendar",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ouvres",
+                "ouvrables",
+                "calendaires"
+              ]
+            }
+          },
+          {
+            "name": "rollover",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "next_business_day",
+                "previous_business_day"
+              ]
+            }
+          },
+          {
+            "name": "zone",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "metropole",
+                "alsace-moselle",
+                "guadeloupe",
+                "saint-martin",
+                "saint-barthelemy",
+                "martinique",
+                "guyane",
+                "reunion",
+                "mayotte"
+              ]
+            }
+          },
+          {
+            "name": "closed",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "echeance brute et echeance reportee"
+          }
+        }
+      }
+    },
+    "/v1/next": {
+      "get": {
+        "summary": "Jour ouvre suivant",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "date"
+          }
+        }
+      }
+    },
+    "/v1/previous": {
+      "get": {
+        "summary": "Jour ouvre precedent",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "date"
+          }
+        }
+      }
+    },
+    "/v1/zones": {
+      "get": {
+        "summary": "Zones et calendriers disponibles",
+        "responses": {
+          "200": {
+            "description": "reference"
+          }
+        }
+      }
+    },
+    "/v1/batch": {
+      "post": {
+        "summary": "Jusqu'a 100 operations en un appel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operations": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "holidays",
+                            "business-day",
+                            "add",
+                            "count",
+                            "deadline",
+                            "next",
+                            "previous",
+                            "zones"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "un resultat par operation, erreurs isolees"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://maker.pro-simon-roux.workers.dev",
+      "description": "production"
+    }
+  ]
+}

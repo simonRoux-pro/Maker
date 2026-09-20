@@ -195,7 +195,7 @@ export async function handleRequest(request, env = {}) {
   }
 
   if (path === "/") return json(ROOT);
-  if (path === "/openapi.json") return json(OPENAPI);
+  if (path === "/openapi.json") return json(openapiFor(url));
 
   if (path === "/v1/batch") {
     if (request.method !== "POST") return fail("utilise POST sur /v1/batch", 405);
@@ -218,6 +218,16 @@ export async function handleRequest(request, env = {}) {
     if (err instanceof InputError) return fail(err.message);
     return fail(`erreur interne: ${err.message}`, 500);
   }
+}
+
+/**
+ * La specification est servie avec l'URL reelle de l'appel comme serveur.
+ * Ainsi un import depuis une marketplace pointe toujours sur le bon domaine,
+ * sans avoir a maintenir une URL en dur dans le code.
+ */
+export function openapiFor(url) {
+  const origin = typeof url === "string" ? new URL(url).origin : url.origin;
+  return { ...OPENAPI, servers: [{ url: origin, description: "production" }] };
 }
 
 export const OPENAPI = {

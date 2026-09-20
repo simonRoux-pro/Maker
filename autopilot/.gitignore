@@ -9,3 +9,4 @@ __pycache__/
 # c'est le fichier que l'operateur copie dans l'editeur Cloudflare.
 !products/jours_feries_api/dist/
 !products/jours_feries_api/dist/worker.bundle.mjs
+!products/jours_feries_api/dist/openapi.json

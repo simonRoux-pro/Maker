@@ -195,3 +195,29 @@ describe("entetes", () => {
     assert.match(headers.get("Cache-Control"), /max-age=86400/);
   });
 });
+
+describe("specification openapi", () => {
+  it("annonce le domaine reellement appele", async () => {
+    const { body } = await call("/openapi.json");
+    assert.deepEqual(body.servers, [
+      { url: "https://api.test", description: "production" },
+    ]);
+  });
+
+  it("suit le domaine, sans URL en dur", async () => {
+    const res = await handleRequest(
+      new Request("https://autre-domaine.example/openapi.json"),
+      {},
+    );
+    const body = await res.json();
+    assert.equal(body.servers[0].url, "https://autre-domaine.example");
+  });
+
+  it("decrit toutes les routes servies", async () => {
+    const { body } = await call("/openapi.json");
+    const documented = Object.keys(body.paths).sort();
+    const served = ["/v1/add", "/v1/batch", "/v1/business-day", "/v1/count",
+      "/v1/deadline", "/v1/holidays", "/v1/next", "/v1/previous", "/v1/zones"];
+    assert.deepEqual(documented, served);
+  });
+});

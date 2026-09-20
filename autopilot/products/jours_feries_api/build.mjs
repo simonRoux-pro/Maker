@@ -44,3 +44,11 @@ writeFileSync(out, header + engine + "\n" + stripped, "utf8");
 
 const size = Buffer.byteLength(header + engine + stripped, "utf8");
 console.log(`dist/worker.bundle.mjs ecrit, ${(size / 1024).toFixed(1)} ko`);
+
+// La specification, avec l'URL de production comme serveur. Elle sert aux
+// imports qui veulent un fichier plutot qu'une URL.
+const { openapiFor } = await import("./worker.mjs");
+const baseUrl = process.env.BASE_URL ?? "https://maker.pro-simon-roux.workers.dev";
+const specPath = join(here, "dist", "openapi.json");
+writeFileSync(specPath, JSON.stringify(openapiFor(baseUrl), null, 2) + "\n", "utf8");
+console.log(`dist/openapi.json ecrit, serveur ${baseUrl}`);
