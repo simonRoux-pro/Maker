@@ -18,7 +18,11 @@ budget = 0.0
 base_url = "https://maker.pro-simon-roux.workers.dev"
 # verrou de la marketplace actif: /health repond protected: true
 proxy_secret_set = true
-# fiche publiee le 2026-09-20, paliers 0 / 9 / 29 dollars
+# fiche publiee le 2026-09-20, paliers 0 / 9 / 29 dollars.
+# listing_url est la page publique vue par un acheteur, a completer.
+# studio_url est la page d'administration, privee.
 listing_url = "https://rapidapi.com/hub"
+studio_url = "https://rapidapi.com/studio/api_7901aa7c-40f1-48c8-88f9-41ab8dd761e5"
+api_id = "api_7901aa7c-40f1-48c8-88f9-41ab8dd761e5"
 # versements: PayPal, environ deux mois apres la transaction
 payout_account = "paypal"
