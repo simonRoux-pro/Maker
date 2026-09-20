@@ -1,8 +1,15 @@
 # Deploiement Cloudflare Workers. Aucun secret ici.
-# Le secret de la marketplace se pose a part:
+#
+# name doit etre identique au nom de l'application Cloudflare qui lance le
+# build, sinon le deploiement est rejete pour cause de nom different.
+# L'application creee depuis le tableau de bord s'appelle "maker".
+#
+# Le secret de la marketplace se pose a part, depuis Settings du worker:
+#   RAPIDAPI_PROXY_SECRET
+# ou en ligne de commande:
 #   npx wrangler secret put RAPIDAPI_PROXY_SECRET
 
-name = "jours-feries-france"
+name = "maker"
 main = "worker.mjs"
 compatibility_date = "2026-09-01"
 
