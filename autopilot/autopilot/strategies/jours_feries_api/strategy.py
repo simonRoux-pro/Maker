@@ -222,25 +222,32 @@ class JoursFeriesApi(Strategy):
                     },
                 )
             )
-        actions.append(
-            RealAction(
-                strategy=self.name,
-                kind="publish",
-                summary="publier la fiche et les paliers tarifaires sur la marketplace",
-                platform="rapidapi",
-                estimated_cost=0.0,
-                risk="medium",
-                payload={
-                    "base_url": self.deployed(ctx),
-                    "paliers": [
-                        {"nom": "Basic", "prix_eur": 0.0, "quota_mensuel": 500},
-                        {"nom": "Pro", "prix_eur": 9.0, "quota_mensuel": 20000},
-                        {"nom": "Ultra", "prix_eur": 29.0, "quota_mensuel": 200000},
-                    ],
-                    "textes": f"{PRODUCT_DIR}/DEPLOIEMENT.md",
-                },
+        if not self.listed(ctx):
+            actions.append(
+                RealAction(
+                    strategy=self.name,
+                    kind="publish",
+                    summary="publier la fiche et les paliers tarifaires sur la marketplace",
+                    platform="rapidapi",
+                    estimated_cost=0.0,
+                    risk="medium",
+                    payload={
+                        "base_url": self.deployed(ctx),
+                        "paliers": [
+                            {"nom": "Basic", "prix_eur": 0.0, "quota_mensuel": 500},
+                            {"nom": "Pro", "prix_eur": 9.0, "quota_mensuel": 20000},
+                            {"nom": "Ultra", "prix_eur": 29.0, "quota_mensuel": 200000},
+                        ],
+                        "textes": f"{PRODUCT_DIR}/DEPLOIEMENT.md",
+                    },
+                )
             )
-        )
+
+        if not actions:
+            result.notes.append(
+                "rien a publier: l'API est en ligne et la fiche existe. "
+                "La strategie n'attend plus que des chiffres reels."
+            )
 
         for action in actions:
             decision = self.request(ctx, action)

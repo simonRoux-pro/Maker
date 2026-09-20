@@ -2,6 +2,7 @@
 
   python3 -m autopilot.cli cycle              lance un cycle complet
   python3 -m autopilot.cli dry-run [nom]      simule une strategie
+  python3 -m autopilot.cli record ...         enregistre un vrai encaissement
   python3 -m autopilot.cli report             etat du Ledger
   python3 -m autopilot.cli approvals          file d'approbation
   python3 -m autopilot.cli approve <id>       valide une action reelle
@@ -67,6 +68,46 @@ def cmd_dry_run(args) -> int:
               f"marge {_eur(result.margin)}")
         for note in result.notes:
             print(f"  note: {note}")
+    conn.close()
+    return 0
+
+
+def cmd_record(args) -> int:
+    """Ecrit un vrai mouvement d'argent au Ledger.
+
+    Enregistrer n'est pas depenser: aucune action externe, donc aucune
+    validation requise. Mais l'ecriture est en mode live, elle compte dans la
+    marge reelle, et elle est tracee au journal d'audit.
+    """
+    cfg = load()
+    conn = connect()
+    ledger = Ledger(conn, cfg.guardrails.fees)
+
+    if args.strategy not in cfg.strategies:
+        print(f"strategie inconnue: {args.strategy}", file=sys.stderr)
+        conn.close()
+        return 1
+
+    category = args.category or ("subscription" if args.kind == "revenue" else "other")
+
+    if args.kind == "revenue":
+        entry_id = ledger.record_revenue(
+            args.strategy, args.amount, mode="live", category=category,
+            note=args.note, external_ref=args.ref, day=args.day,
+            apply_paypal_fee=args.paypal_fee,
+        )
+        print(f"encaissement #{entry_id}: {_eur(args.amount)} pour {args.strategy}")
+        if args.paypal_fee:
+            print(f"  frais PayPal deduits: {_eur(cfg.guardrails.fees.paypal_fee(args.amount))}")
+    else:
+        entry_id = ledger.record_cost(
+            args.strategy, args.amount, mode="live", category=category,
+            note=args.note, external_ref=args.ref, day=args.day,
+        )
+        print(f"cout #{entry_id}: {_eur(args.amount)} pour {args.strategy}")
+
+    total = cumulative_margin(conn, "live")
+    print(f"marge nette reelle cumulee: {_eur(total['margin'])}")
     conn.close()
     return 0
 
@@ -187,6 +228,19 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("dry-run", help="simule une strategie")
     p.add_argument("name", nargs="?", help="nom de la strategie, toutes par defaut")
     p.set_defaults(func=cmd_dry_run)
+
+    p = sub.add_parser("record", help="enregistre un vrai mouvement d'argent")
+    p.add_argument("kind", choices=["revenue", "cost"])
+    p.add_argument("strategy")
+    p.add_argument("amount", type=float)
+    p.add_argument("--category", default=None,
+                   help="sale, subscription, marketplace_fee, hosting, ads...")
+    p.add_argument("--note")
+    p.add_argument("--ref", help="identifiant de la transaction cote plateforme")
+    p.add_argument("--day", help="AAAA-MM-JJ, aujourd'hui par defaut")
+    p.add_argument("--paypal-fee", action="store_true",
+                   help="deduit les frais PayPal d'un encaissement direct")
+    p.set_defaults(func=cmd_record)
 
     p = sub.add_parser("report", help="etat du Ledger et verdicts")
     p.set_defaults(func=cmd_report)

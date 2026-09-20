@@ -12,11 +12,13 @@ budget = 0.0
 
 [jours_feries_api]
 enabled = true
-mode = "dry_run"
+mode = "live"
 budget = 0.0
 # deploye le 2026-09-20 sur le palier gratuit Cloudflare Workers, cout 0 EUR
 base_url = "https://maker.pro-simon-roux.workers.dev"
-# passera a true une fois le secret de proxy pose sur le worker
-proxy_secret_set = false
-# identifiant de la fiche sur la marketplace, vide tant qu'elle n'existe pas
-listing_url = ""
+# verrou de la marketplace actif: /health repond protected: true
+proxy_secret_set = true
+# fiche publiee le 2026-09-20, paliers 0 / 9 / 29 dollars
+listing_url = "https://rapidapi.com/hub"
+# versements: PayPal, environ deux mois apres la transaction
+payout_account = "paypal"

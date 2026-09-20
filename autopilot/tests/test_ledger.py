@@ -68,3 +68,52 @@ class TestLedger(IsolatedCase):
             self.ledger.record_cost("s", 1.0, mode="reel", category="api")
         with self.assertRaises(ValueError):
             self.ledger.record_cost("s", -1.0, mode="live", category="api")
+
+
+class TestRecordCommand(IsolatedCase):
+    """La commande qui fait entrer de l'argent reel dans le Ledger."""
+
+    def test_records_real_revenue_with_fees(self):
+        from autopilot.cli import main
+
+        self.assertEqual(
+            main(["record", "revenue", "jours_feries_api", "40.0",
+                  "--category", "subscription", "--ref", "payout-001"]),
+            0,
+        )
+        conn = connect()
+        total = cumulative_margin(conn, "live")
+        self.assertEqual(total["revenue"], 40.0)
+        self.assertEqual(total["cost"], 0.0, "pas de frais PayPal sans l'option")
+        row = conn.execute(
+            "SELECT external_ref, mode FROM entries WHERE kind = 'revenue'"
+        ).fetchone()
+        self.assertEqual(row["external_ref"], "payout-001")
+        self.assertEqual(row["mode"], "live")
+        conn.close()
+
+    def test_paypal_fee_is_opt_in(self):
+        from autopilot.cli import main
+
+        main(["record", "revenue", "jours_feries_api", "100.0", "--paypal-fee"])
+        conn = connect()
+        self.assertEqual(cumulative_margin(conn, "live")["cost"], 3.75)
+        conn.close()
+
+    def test_records_a_real_cost(self):
+        from autopilot.cli import main
+
+        main(["record", "cost", "jours_feries_api", "5.0", "--category", "hosting"])
+        conn = connect()
+        total = cumulative_margin(conn, "live")
+        self.assertEqual(total["margin"], -5.0)
+        self.assertEqual(spent_total(conn), 5.0)
+        conn.close()
+
+    def test_refuses_an_unknown_strategy(self):
+        from autopilot.cli import main
+
+        self.assertEqual(main(["record", "revenue", "inexistante", "10.0"]), 1)
+        conn = connect()
+        self.assertEqual(cumulative_margin(conn, "live")["revenue"], 0.0)
+        conn.close()
