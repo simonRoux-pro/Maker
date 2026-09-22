@@ -1,0 +1,13 @@
+[strategy]
+name = "pack_calendrier"
+summary = "Pack calendrier France 2026-2035 vendu en telechargement: jours feries et jours ouvres des neuf zones, en ICS et CSV. Versement PayPal immediat, sans les deux mois d'attente d'une marketplace d'APIs."
+kind = "revenue"
+risk = "low"
+estimated_setup_cost = 0.0
+estimated_monthly_cost = 0.0
+platforms = ["payhip"]
+apis = []
+needs_operator = [
+  "creer le compte vendeur sur la plateforme de vente et y relier le PayPal",
+  "televerser le pack et publier la fiche produit",
+]

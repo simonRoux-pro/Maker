@@ -44,6 +44,7 @@ BACKLOG = [
     },
     {
         "id": "produits_numeriques",
+        "strategy": "pack_calendrier",
         "title": "Produits numeriques sur plateforme de vente",
         "mechanism": "vente a l'unite, commission plateforme",
         "setup_cost": 0.0,

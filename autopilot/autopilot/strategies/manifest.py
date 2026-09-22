@@ -14,6 +14,11 @@ from ..errors import ConfigError
 
 RISKS = ("low", "medium", "high")
 
+# revenue: elle doit rapporter, et son verdict se juge sur la marge
+# support:  elle sert les autres, juger sa marge propre n'a pas de sens
+# test:     elle valide la boucle, elle ne doit jamais passer en reel
+KINDS = ("revenue", "support", "test")
+
 
 @dataclass(frozen=True)
 class Manifest:
@@ -25,6 +30,7 @@ class Manifest:
     platforms: tuple[str, ...] = ()
     apis: tuple[str, ...] = ()
     needs_operator: tuple[str, ...] = field(default=())
+    kind: str = "revenue"
     # une strategie de validation ne doit jamais etre proposee pour du reel
     test_only: bool = False
 
@@ -39,6 +45,9 @@ class Manifest:
         risk = str(data.get("risk", "low"))
         if risk not in RISKS:
             raise ConfigError(f"{path}: risque inconnu {risk!r}")
+        kind = str(data.get("kind", "revenue"))
+        if kind not in KINDS:
+            raise ConfigError(f"{path}: nature inconnue {kind!r}, attendu {KINDS}")
         return cls(
             name=str(data["name"]),
             summary=str(data.get("summary", "")),
@@ -48,7 +57,8 @@ class Manifest:
             platforms=tuple(data.get("platforms", ())),
             apis=tuple(data.get("apis", ())),
             needs_operator=tuple(data.get("needs_operator", ())),
-            test_only=bool(data.get("test_only", False)),
+            kind=kind,
+            test_only=bool(data.get("test_only", False)) or kind == "test",
         )
 
     def as_dict(self) -> dict:
@@ -61,5 +71,6 @@ class Manifest:
             "platforms": list(self.platforms),
             "apis": list(self.apis),
             "needs_operator": list(self.needs_operator),
+            "kind": self.kind,
             "test_only": self.test_only,
         }

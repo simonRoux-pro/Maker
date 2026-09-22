@@ -35,3 +35,17 @@ budget = 0.0
 base_url = ""
 listing_url = ""
 proxy_secret_set = false
+
+[pack_calendrier]
+enabled = true
+mode = "dry_run"
+budget = 0.0
+# a completer une fois la fiche produit publiee
+listing_url = ""
+
+[outils_web]
+enabled = true
+mode = "dry_run"
+budget = 0.0
+# a completer une fois le worker outils cree
+base_url = ""

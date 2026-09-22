@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calcul de jours ouvrés, de délais et vérification d'identifiants</title>
+<meta name="description" content="Outils gratuits de calcul français : jours ouvrés entre deux dates, échéance d'un délai avec report légal, jours fériés par zone, vérification d'IBAN, de SIREN, de SIRET et de TVA.">
+<link rel="canonical" href="https://outils.pro-simon-roux.workers.dev/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%231b4fd8%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%2217%22%20rx%3D%222%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%225%22%20fill%3D%22%230f2f8a%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221%22%20fill%3D%22%231b4fd8%22%2F%3E%3C%2Fsvg%3E">
+<meta property="og:title" content="Calcul de jours ouvrés, de délais et vérification d'identifiants">
+<meta property="og:description" content="Outils gratuits de calcul français : jours ouvrés entre deux dates, échéance d'un délai avec report légal, jours fériés par zone, vérification d'IBAN, de SIREN, de SIRET et de TVA.">
+<meta property="og:type" content="website">
+<style>
+:root{--bg:#fbfbfc;--panel:#fff;--ink:#16181d;--muted:#5f6672;--line:#e4e7eb;
+--accent:#1b4fd8;--ok:#136c43;--ko:#a3242b}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1114;
+--panel:#171a1f;--ink:#e9ebee;--muted:#98a0ab;--line:#262b32;--accent:#7fa5ff;
+--ok:#4ec98a;--ko:#f0726f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.65;
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 64px}
+header{border-bottom:1px solid var(--line);margin-bottom:28px}
+header .wrap{padding-top:16px;padding-bottom:16px;display:flex;gap:16px;
+align-items:baseline;flex-wrap:wrap}
+header a.brand{font-weight:600;color:var(--ink);text-decoration:none}
+header nav{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+header nav a{color:var(--muted);text-decoration:none}
+header nav a:hover{color:var(--accent)}
+h1{font-size:30px;line-height:1.25;margin:0 0 12px}
+h2{font-size:20px;margin:36px 0 10px}
+p{margin:0 0 14px}
+.lead{font-size:18px;color:var(--muted)}
+a{color:var(--accent)}
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+padding:18px;margin:24px 0 8px}
+form{display:grid;gap:14px}
+label{display:grid;gap:6px;font-size:14px;color:var(--muted)}
+input,select{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);
+background:var(--bg);color:var(--ink);width:100%}
+button{font:inherit;font-weight:600;padding:11px 18px;border-radius:8px;border:0;
+background:var(--accent);color:#fff;cursor:pointer}
+.hint{font-size:13px;color:var(--muted);margin:0}
+output{display:block;margin-top:16px}
+.result{padding:14px;border-radius:10px;border:1px solid var(--line)}
+.result strong{font-size:19px;display:block;margin-bottom:4px}
+.result.ok strong{color:var(--ok)}
+.result.ko strong{color:var(--ko)}
+.result p{margin:4px 0 0;font-size:15px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;color:var(--muted)}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+margin:24px 0}
+.card{display:grid;gap:4px;padding:16px;background:var(--panel);border:1px solid var(--line);
+border-radius:12px;text-decoration:none;color:var(--ink)}
+.card span{font-size:14px;color:var(--muted)}
+.card:hover{border-color:var(--accent)}
+footer{border-top:1px solid var(--line);margin-top:48px;padding-top:20px;
+font-size:14px;color:var(--muted)}
+@media(max-width:560px){h1{font-size:25px}.wrap{padding:0 14px 48px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="/">Jours ouvrés, délais et identifiants</a>
+  <nav><a href="/jours-ouvres">jours ouvres</a><a href="/delai">delai</a><a href="/jours-feries">jours feries</a><a href="/iban">iban</a><a href="/siret">siret</a><a href="/rib">rib</a></nav>
+</div></header>
+<main class="wrap">
+
+<h1>Des calculs français qui tombent juste</h1>
+<p class="lead">Six outils, aucune inscription, aucune donnée envoyée. Tout le
+calcul se fait dans votre navigateur.</p>
+
+<div class="cards">
+  <a class="card" href="/jours-ouvres"><strong>Jours ouvrés entre deux dates</strong>
+    <span>Compter, ou ajouter un nombre de jours ouvrés à une date.</span></a>
+  <a class="card" href="/delai"><strong>Échéance d'un délai</strong>
+    <span>Avec report au premier jour ouvrable, article 642 du CPC.</span></a>
+  <a class="card" href="/jours-feries"><strong>Jours fériés</strong>
+    <span>Métropole, Alsace-Moselle et outre-mer, de 1982 à 2100.</span></a>
+  <a class="card" href="/iban"><strong>Vérifier un IBAN</strong>
+    <span>Clé de contrôle et longueur, 37 pays de la zone SEPA.</span></a>
+  <a class="card" href="/siret"><strong>SIREN, SIRET et TVA</strong>
+    <span>Clé de Luhn, exception La Poste, numéro de TVA français.</span></a>
+  <a class="card" href="/rib"><strong>Clé RIB</strong>
+    <span>Calculer ou vérifier la clé d'un relevé d'identité bancaire.</span></a>
+</div>
+
+<h2>Pourquoi ces outils existent</h2>
+<p>Ces calculs ont l'air simples et ne le sont pas. Un délai d'un jour à
+partir du 7 mai 2026 n'échoit pas le 8 mai : le 8 mai est férié, donc
+l'échéance glisse au lundi 11. Les SIRET de La Poste échouent au contrôle de
+Luhn que tout le monde applique. La clé d'un RIB convertit la lettre S en 2 et
+non en 1. Chacune de ces règles est une source d'erreur banale dans un
+logiciel de facturation ou de paie.</p>
+
+<footer>
+<h2>Les mêmes calculs, ailleurs</h2>
+<p>Ces outils appellent exactement le même moteur que notre API, utilisable
+depuis votre code : <a href="https://rapidapi.com/prosimonroux/api/french-public-holidays-business-days">API jours fériés et délais</a>.</p>
+<p>Un pack de calendriers prêts à importer dans Outlook ou Google Agenda,
+couvrant 2026 à 2035 pour les neuf zones, est également disponible.</p></footer>
+</main>
+
+</body>
+</html>

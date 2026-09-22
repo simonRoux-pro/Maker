@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://outils.pro-simon-roux.workers.dev/sitemap.xml

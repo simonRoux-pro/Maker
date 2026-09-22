@@ -35,6 +35,12 @@ class TestProjection(IsolatedCase):
 
 
 class TestStrategyDryRun(IsolatedCase):
+    # la simulation ne modelise des ventes que si la fiche existe
+    strategy_options = (
+        'base_url = "https://maker.example.workers.dev"\n'
+        'listing_url = "https://marketplace.example/api/x"'
+    )
+
     def _ctx(self):
         cfg = load()
         conn = connect()
@@ -48,10 +54,11 @@ class TestStrategyDryRun(IsolatedCase):
         self.assertEqual(manifest.platforms, ("rapidapi",))
         self.assertTrue(manifest.needs_operator)
 
-    def test_plan_marks_external_steps(self):
+    def test_plan_reflects_what_is_already_done(self):
         cfg, conn, ctx = self._ctx()
         plan = registry.discover()[NAME].plan(ctx)
-        self.assertTrue(any(s.external for s in plan.steps))
+        # deploiement et fiche faits: plus aucune etape externe a franchir
+        self.assertFalse(any(s.external for s in plan.steps))
         self.assertEqual(plan.estimated_cost, 0.0)
         conn.close()
 
@@ -82,7 +89,9 @@ class TestStrategyDryRun(IsolatedCase):
         cfg, conn, ctx = self._ctx()
         result = registry.discover()[NAME].execute(ctx)
         self.assertEqual(result.actions_taken, [])
-        self.assertEqual(len(result.actions_blocked), 2)
+        # deploiement et fiche sont deja faits ici, il ne reste rien a publier
+        self.assertEqual(result.actions_blocked, [])
+        self.assertTrue(any("rien a publier" in n for n in result.notes))
         self.assertEqual(approvals.list_by_status(conn, "pending"), [])
         conn.close()
 
@@ -192,4 +201,35 @@ class TestSecretReminder(IsolatedCase):
         tasks = registry.discover()[NAME].operator_tasks(ctx)
         self.assertEqual(len(tasks), 1)
         self.assertIn("RAPIDAPI_PROXY_SECRET", tasks[0])
+        conn.close()
+
+
+class TestUnlistedSellsNothing(IsolatedCase):
+    """Une fiche qui n'existe pas ne peut rien vendre, et le Ledger doit le dire."""
+
+    def test_no_listing_means_no_simulated_revenue(self):
+        cfg = load()
+        conn = connect()
+        ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+        result = registry.discover()[NAME].dry_run(ctx)
+        self.assertEqual(result.revenue, 0.0)
+        self.assertEqual(result.cost, 0.0)
+        self.assertEqual(cumulative_margin(conn, "dry_run")["revenue"], 0.0)
+        self.assertTrue(any("non publiee" in n for n in result.notes))
+        self.assertTrue(any("si elle l'etait" in n for n in result.notes))
+        conn.close()
+
+
+class TestListedIsModelled(IsolatedCase):
+    strategy_options = (
+        'base_url = "https://maker.example.workers.dev"\n'
+        'listing_url = "https://marketplace.example/api/x"'
+    )
+
+    def test_a_published_listing_is_modelled(self):
+        cfg = load()
+        conn = connect()
+        ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+        result = registry.discover()[NAME].dry_run(ctx)
+        self.assertGreater(result.revenue, 0.0)
         conn.close()

@@ -72,7 +72,11 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
     test_only = frozenset(
         name for name, strategy in registry.discover().items() if strategy.manifest.test_only
     )
-    analysis = analyze(conn, cfg, test_only)
+    support = frozenset(
+        name for name, strategy in registry.discover().items()
+        if strategy.manifest.kind == "support"
+    )
+    analysis = analyze(conn, cfg, test_only, support)
     proposals = propose(mem, analysis)
     pending = approvals.list_by_status(conn, "pending")
 

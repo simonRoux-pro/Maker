@@ -156,6 +156,17 @@ class MarketplaceApiStrategy(Strategy):
         first, last = rows[0], rows[-1]
         result = RunResult(strategy=self.name, mode="dry_run")
 
+        # Une fiche qui n'existe pas ne recoit aucune visite, donc ne vend
+        # rien. Ecrire un revenu modelise dans ce cas donnerait une marge
+        # simulee flatteuse pour un produit que personne ne peut acheter.
+        if not self.listed(ctx):
+            result.notes += [
+                "fiche non publiee: aucune vente possible, rien d'ecrit au Ledger",
+                f"si elle l'etait, le modele donnerait {first['net']:.2f} EUR le "
+                f"premier mois et {last['net']:.2f} EUR au douzieme",
+            ]
+            return result
+
         # apply_paypal_fee=False: l'argent ne vient pas d'un encaissement PayPal
         # direct mais d'un versement de la marketplace. Les vrais frais sont la
         # commission et le frais de versement, enregistres a la main.

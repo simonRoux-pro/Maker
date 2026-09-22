@@ -1,0 +1,11 @@
+{
+  "name": "pack-calendrier-france",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pack calendrier jours feries et jours ouvres France 2026-2035, vendu en telechargement.",
+  "scripts": {
+    "build": "node generate.mjs",
+    "test": "node generate.mjs && node --test \"test/*.test.mjs\""
+  }
+}

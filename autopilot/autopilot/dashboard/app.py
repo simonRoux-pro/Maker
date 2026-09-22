@@ -79,6 +79,7 @@ def snapshot() -> dict:
                 conn,
                 cfg,
                 frozenset(n for n, s in discovered.items() if s.manifest.test_only),
+                frozenset(n for n, s in discovered.items() if s.manifest.kind == "support"),
             ),
             "operator_tasks": [
                 {"strategy": name, "task": task}

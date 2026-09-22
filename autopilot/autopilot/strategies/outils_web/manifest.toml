@@ -1,0 +1,12 @@
+[strategy]
+name = "outils_web"
+summary = "Site public d'outils de calcul gratuits. Brique de distribution: il ne vend rien lui-meme, il amene le trafic vers les APIs et le pack. Sept pages autonomes, calcul dans le navigateur, cout d'hebergement nul."
+kind = "support"
+risk = "low"
+estimated_setup_cost = 0.0
+estimated_monthly_cost = 0.0
+platforms = []
+apis = ["cloudflare-workers"]
+needs_operator = [
+  "creer un worker Cloudflare nomme outils, relie a GitHub, repertoire racine products/outils_web",
+]

@@ -1,0 +1,13 @@
+{
+  "name": "outils-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Site public des outils de calcul gratuits, sans dependance.",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test \"test/*.test.mjs\"",
+    "start": "node server.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}

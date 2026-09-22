@@ -1,0 +1,26 @@
+Pack calendrier France 2026-2035
+================================
+
+Contenu, pour chacune des 9 zones:
+  ics/    calendrier a importer dans Outlook, Google Agenda, Apple Calendrier
+  csv/    liste des jours feries, ouvrable dans Excel
+  mensuel/ nombre de jours ouvres et ouvrables de chaque mois
+
+Zones couvertes: France metropolitaine, Alsace-Moselle, et les sept
+collectivites d'outre-mer avec leur jour d'abolition de l'esclavage.
+
+Les fichiers CSV utilisent le point-virgule comme separateur, qui est ce
+qu'attend Excel en configuration francaise. Ouvrez-les directement, sans
+assistant d'importation.
+
+Les jours ouvres comptent du lundi au vendredi, feries deduits. Les jours
+ouvrables comptent du lundi au samedi, feries deduits. Cette distinction
+change les resultats en paie, en RH et dans un contrat commercial: verifiez
+laquelle s'applique a votre cas.
+
+Licence: usage libre, y compris commercial, au sein de votre organisation.
+La revente du pack en l'etat n'est pas autorisee.
+
+Une API existe pour les memes calculs en temps reel, avec le calcul
+d'echeances et le report au premier jour ouvrable:
+https://rapidapi.com/prosimonroux/api/french-public-holidays-business-days

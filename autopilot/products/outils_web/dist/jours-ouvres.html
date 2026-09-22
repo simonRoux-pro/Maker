@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculer les jours ouvrés entre deux dates</title>
+<meta name="description" content="Compter les jours ouvrés ou ouvrables entre deux dates, ou ajouter un nombre de jours ouvrés à une date. Jours fériés français déduits, zones métropole, Alsace-Moselle et outre-mer.">
+<link rel="canonical" href="https://outils.pro-simon-roux.workers.dev/jours-ouvres">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%231b4fd8%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%2217%22%20rx%3D%222%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%225%22%20fill%3D%22%230f2f8a%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221%22%20fill%3D%22%231b4fd8%22%2F%3E%3C%2Fsvg%3E">
+<meta property="og:title" content="Calculer les jours ouvrés entre deux dates">
+<meta property="og:description" content="Compter les jours ouvrés ou ouvrables entre deux dates, ou ajouter un nombre de jours ouvrés à une date. Jours fériés français déduits, zones métropole, Alsace-Moselle et outre-mer.">
+<meta property="og:type" content="website">
+<style>
+:root{--bg:#fbfbfc;--panel:#fff;--ink:#16181d;--muted:#5f6672;--line:#e4e7eb;
+--accent:#1b4fd8;--ok:#136c43;--ko:#a3242b}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1114;
+--panel:#171a1f;--ink:#e9ebee;--muted:#98a0ab;--line:#262b32;--accent:#7fa5ff;
+--ok:#4ec98a;--ko:#f0726f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.65;
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 64px}
+header{border-bottom:1px solid var(--line);margin-bottom:28px}
+header .wrap{padding-top:16px;padding-bottom:16px;display:flex;gap:16px;
+align-items:baseline;flex-wrap:wrap}
+header a.brand{font-weight:600;color:var(--ink);text-decoration:none}
+header nav{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+header nav a{color:var(--muted);text-decoration:none}
+header nav a:hover{color:var(--accent)}
+h1{font-size:30px;line-height:1.25;margin:0 0 12px}
+h2{font-size:20px;margin:36px 0 10px}
+p{margin:0 0 14px}
+.lead{font-size:18px;color:var(--muted)}
+a{color:var(--accent)}
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+padding:18px;margin:24px 0 8px}
+form{display:grid;gap:14px}
+label{display:grid;gap:6px;font-size:14px;color:var(--muted)}
+input,select{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);
+background:var(--bg);color:var(--ink);width:100%}
+button{font:inherit;font-weight:600;padding:11px 18px;border-radius:8px;border:0;
+background:var(--accent);color:#fff;cursor:pointer}
+.hint{font-size:13px;color:var(--muted);margin:0}
+output{display:block;margin-top:16px}
+.result{padding:14px;border-radius:10px;border:1px solid var(--line)}
+.result strong{font-size:19px;display:block;margin-bottom:4px}
+.result.ok strong{color:var(--ok)}
+.result.ko strong{color:var(--ko)}
+.result p{margin:4px 0 0;font-size:15px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;color:var(--muted)}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+margin:24px 0}
+.card{display:grid;gap:4px;padding:16px;background:var(--panel);border:1px solid var(--line);
+border-radius:12px;text-decoration:none;color:var(--ink)}
+.card span{font-size:14px;color:var(--muted)}
+.card:hover{border-color:var(--accent)}
+footer{border-top:1px solid var(--line);margin-top:48px;padding-top:20px;
+font-size:14px;color:var(--muted)}
+@media(max-width:560px){h1{font-size:25px}.wrap{padding:0 14px 48px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="/">Jours ouvrés, délais et identifiants</a>
+  <nav><a href="/jours-ouvres">jours ouvres</a><a href="/delai">delai</a><a href="/jours-feries">jours feries</a><a href="/iban">iban</a><a href="/siret">siret</a><a href="/rib">rib</a></nav>
+</div></header>
+<main class="wrap">
+
+<h1>Jours ouvrés entre deux dates</h1>
+<p class="lead">Comptez les jours ouvrés d'une période, ou ajoutez un nombre de
+jours ouvrés à une date. Les jours fériés de la zone choisie sont déduits.</p>
+
+<div class="tool">
+<form id="f">
+  
+  <label>Mode
+    <select name="mode">
+      <option value="count">compter entre deux dates</option>
+      <option value="add">ajouter des jours à une date</option>
+    </select>
+  </label>
+  <label>Date de début<input type="date" name="from" required></label>
+  <label id="to-field">Date de fin<input type="date" name="to"></label>
+  <label id="days-field" hidden>Nombre de jours<input type="number" name="days" value="10"></label>
+  
+<label>Calendrier
+  <select name="calendar">
+    <option value="ouvres">jours ouvrés, lundi à vendredi</option>
+    <option value="ouvrables">jours ouvrables, lundi à samedi</option>
+    <option value="calendaires">jours calendaires, tous les jours</option>
+  </select>
+</label>
+  
+<label>Zone
+  <select name="zone">
+    <option value="metropole">France métropolitaine</option>
+    <option value="alsace-moselle">Alsace-Moselle</option>
+    <option value="guadeloupe">Guadeloupe</option>
+    <option value="martinique">Martinique</option>
+    <option value="guyane">Guyane</option>
+    <option value="reunion">La Réunion</option>
+    <option value="mayotte">Mayotte</option>
+    <option value="saint-martin">Saint-Martin</option>
+    <option value="saint-barthelemy">Saint-Barthélemy</option>
+  </select>
+</label>
+  <button type="submit">Calculer</button>
+</form>
+<output id="out" aria-live="polite"></output></div>
+
+<h2>Jours ouvrés ou jours ouvrables : la distinction qui change tout</h2>
+<p>Les <strong>jours ouvrés</strong> vont du lundi au vendredi, jours fériés
+déduits. C'est la notion utilisée dans la plupart des contrats commerciaux et
+des délais de livraison.</p>
+<p>Les <strong>jours ouvrables</strong> vont du lundi au samedi, jours fériés
+déduits. C'est la notion du code du travail pour les congés payés : cinq
+semaines de congés font 30 jours ouvrables et non 25.</p>
+<p>Confondre les deux sur un délai de 30 jours crée un écart d'environ une
+semaine. Vérifiez toujours laquelle de ces deux notions votre contrat ou votre
+convention collective emploie.</p>
+
+<h2>Un exemple qui surprend</h2>
+<p>Du lundi 11 au vendredi 15 mai 2026, il y a cinq jours de calendrier mais
+seulement quatre jours ouvrés : le jeudi 14 mai est l'Ascension.</p>
+
+<footer>
+<h2>Les mêmes calculs, ailleurs</h2>
+<p>Ces outils appellent exactement le même moteur que notre API, utilisable
+depuis votre code : <a href="https://rapidapi.com/prosimonroux/api/french-public-holidays-business-days">API jours fériés et délais</a>.</p>
+<p>Un pack de calendriers prêts à importer dans Outlook ou Google Agenda,
+couvrant 2026 à 2035 pour les neuf zones, est également disponible.</p></footer>
+</main>
+<script type="module">
+/**
+ * Moteur de calcul des jours feries, jours ouvres et delais en droit francais.
+ *
+ * Pur calcul: aucune dependance, aucun appel reseau, aucun etat. Tout est
+ * deterministe et testable, ce qui est la seule raison pour laquelle on peut
+ * le vendre sans le surveiller.
+ *
+ * Perimetre assume: 1982 a 2100. Le 8 mai n'est ferie sans interruption que
+ * depuis la loi du 2 octobre 1981, donc avant 1982 le calcul serait faux et
+ * on refuse plutot que de mentir.
+ */
+
+export const MIN_YEAR = 1982;
+export const MAX_YEAR = 2100;
+
+const DAY = 86400000;
+
+/** Zones: metropole, Alsace-Moselle et collectivites d'outre-mer. */
+export const ZONES = {
+  metropole: { label: "France metropolitaine" },
+  "alsace-moselle": { label: "Bas-Rhin, Haut-Rhin, Moselle" },
+  guadeloupe: { label: "Guadeloupe" },
+  "saint-martin": { label: "Saint-Martin" },
+  "saint-barthelemy": { label: "Saint-Barthelemy" },
+  martinique: { label: "Martinique" },
+  guyane: { label: "Guyane" },
+  reunion: { label: "La Reunion" },
+  mayotte: { label: "Mayotte" },
+};
+
+/** Jour supplementaire propre a chaque collectivite: abolition de l'esclavage. */
+const ABOLITION = {
+  mayotte: [4, 27],
+  martinique: [5, 22],
+  guadeloupe: [5, 27],
+  "saint-martin": [5, 28],
+  guyane: [6, 10],
+  "saint-barthelemy": [10, 9],
+  reunion: [12, 20],
+};
+
+/**
+ * useClosed: une fermeture d'entreprise retire un jour ouvre, mais ne retire
+ * pas un jour calendaire. Un delai en jours calendaires ne s'allonge pas
+ * parce que la boite est fermee, il se reporte seulement a son echeance.
+ */
+export const CALENDARS = {
+  // jours ouvres: du lundi au vendredi, feries exclus
+  ouvres: { weekend: [0, 6], skipHolidays: true, useClosed: true },
+  // jours ouvrables: du lundi au samedi, feries exclus
+  ouvrables: { weekend: [0], skipHolidays: true, useClosed: true },
+  // jours calendaires: tous les jours, feries et fermetures inclus
+  calendaires: { weekend: [], skipHolidays: false, useClosed: false },
+};
+
+export class InputError extends Error {}
+
+// ---------------------------------------------------------------- dates
+
+export function parseDate(value, field = "date") {
+  if (value instanceof Date) return utc(value.getUTCFullYear(), value.getUTCMonth() + 1, value.getUTCDate());
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new InputError(`${field} invalide, format attendu AAAA-MM-JJ`);
+  }
+  const [y, m, d] = value.split("-").map(Number);
+  const date = utc(y, m, d);
+  if (date.getUTCFullYear() !== y || date.getUTCMonth() + 1 !== m || date.getUTCDate() !== d) {
+    throw new InputError(`${field} inexistante: ${value}`);
+  }
+  checkYear(y, field);
+  return date;
+}
+
+export function formatDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function utc(year, month, day) {
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function checkYear(year, field = "annee") {
+  if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) {
+    throw new InputError(`${field} hors perimetre, ${MIN_YEAR} a ${MAX_YEAR} seulement`);
+  }
+}
+
+function shift(date, days) {
+  return new Date(date.getTime() + days * DAY);
+}
+
+// ---------------------------------------------------------------- feries
+
+/** Dimanche de Paques, algorithme gregorien anonyme. */
+export function easterSunday(year) {
+  checkYear(year);
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return utc(year, month, day);
+}
+
+export function normalizeZone(zone) {
+  const key = String(zone ?? "metropole").toLowerCase().trim();
+  if (!(key in ZONES)) {
+    throw new InputError(`zone inconnue: ${zone}, valeurs possibles ${Object.keys(ZONES).join(", ")}`);
+  }
+  return key;
+}
+
+/** Liste triee des jours feries legaux d'une annee pour une zone. */
+export function holidays(year, zone = "metropole") {
+  checkYear(year);
+  const key = normalizeZone(zone);
+  const easter = easterSunday(year);
+  const list = [
+    { date: utc(year, 1, 1), name: "Jour de l'an" },
+    { date: shift(easter, 1), name: "Lundi de Paques" },
+    { date: utc(year, 5, 1), name: "Fete du Travail" },
+    { date: utc(year, 5, 8), name: "Victoire 1945" },
+    { date: shift(easter, 39), name: "Ascension" },
+    { date: shift(easter, 50), name: "Lundi de Pentecote" },
+    { date: utc(year, 7, 14), name: "Fete nationale" },
+    { date: utc(year, 8, 15), name: "Assomption" },
+    { date: utc(year, 11, 1), name: "Toussaint" },
+    { date: utc(year, 11, 11), name: "Armistice 1918" },
+    { date: utc(year, 12, 25), name: "Noel" },
+  ];
+
+  if (key === "alsace-moselle") {
+    list.push({ date: shift(easter, -2), name: "Vendredi saint" });
+    list.push({ date: utc(year, 12, 26), name: "Saint Etienne" });
+  }
+
+  const abolition = ABOLITION[key];
+  if (abolition) {
+    list.push({
+      date: utc(year, abolition[0], abolition[1]),
+      name: "Abolition de l'esclavage",
+    });
+  }
+
+  return list
+    .sort((a, b) => a.date - b.date)
+    .map((h) => ({ date: formatDate(h.date), name: h.name }));
+}
+
+// ---------------------------------------------------------------- jours
+
+function holidaySet(year, zone) {
+  return new Set(holidays(year, zone).map((h) => h.date));
+}
+
+function closedSet(closed) {
+  if (!closed) return new Set();
+  const values = Array.isArray(closed) ? closed : String(closed).split(",");
+  return new Set(
+    values
+      .map((v) => String(v).trim())
+      .filter(Boolean)
+      .map((v) => formatDate(parseDate(v, "closed"))),
+  );
+}
+
+function calendarOf(name) {
+  const key = String(name ?? "ouvres").toLowerCase().trim();
+  if (!(key in CALENDARS)) {
+    throw new InputError(`calendrier inconnu: ${name}, valeurs possibles ${Object.keys(CALENDARS).join(", ")}`);
+  }
+  return { key, ...CALENDARS[key] };
+}
+
+/** Contexte reutilisable, pour ne pas recalculer les feries a chaque jour. */
+function makeContext({ zone, calendar, closed }) {
+  const zoneKey = normalizeZone(zone);
+  const cal = calendarOf(calendar);
+  const extra = closedSet(closed);
+  const cache = new Map();
+  const holidaysOf = (year) => {
+    if (!cache.has(year)) cache.set(year, holidaySet(year, zoneKey));
+    return cache.get(year);
+  };
+  return {
+    zone: zoneKey,
+    calendar: cal.key,
+    closedCount: extra.size,
+    isHoliday(date) {
+      return holidaysOf(date.getUTCFullYear()).has(formatDate(date));
+    },
+    isOpen(date) {
+      const iso = formatDate(date);
+      if (cal.useClosed && extra.has(iso)) return false;
+      if (cal.weekend.includes(date.getUTCDay())) return false;
+      if (cal.skipHolidays && holidaysOf(date.getUTCFullYear()).has(iso)) return false;
+      return true;
+    },
+    reasonClosed(date) {
+      const iso = formatDate(date);
+      if (cal.useClosed && extra.has(iso)) return "fermeture declaree";
+      if (cal.weekend.includes(date.getUTCDay())) {
+        return date.getUTCDay() === 0 ? "dimanche" : "samedi";
+      }
+      if (cal.skipHolidays) {
+        const found = holidays(date.getUTCFullYear(), zoneKey).find((h) => h.date === iso);
+        if (found) return `ferie: ${found.name}`;
+      }
+      return null;
+    },
+  };
+}
+
+export function isBusinessDay(date, options = {}) {
+  const ctx = makeContext(options);
+  const d = parseDate(date);
+  const open = ctx.isOpen(d);
+  return {
+    date: formatDate(d),
+    business_day: open,
+    weekday: d.getUTCDay(),
+    reason: open ? null : ctx.reasonClosed(d),
+    calendar: ctx.calendar,
+    zone: ctx.zone,
+  };
+}
+
+/** Jour ouvre suivant ou precedent, le jour donne inclus s'il est ouvre. */
+function roll(ctx, date, direction) {
+  let cursor = date;
+  let guard = 0;
+  while (!ctx.isOpen(cursor)) {
+    cursor = shift(cursor, direction);
+    if (++guard > 400) throw new InputError("aucun jour ouvre trouve, verifie les fermetures declarees");
+  }
+  return cursor;
+}
+
+/**
+ * Ajoute ou retire des jours. Le jour de depart n'est jamais compte.
+ * En calendaires, on avance jour par jour sans rien sauter.
+ */
+export function addDays(date, count, options = {}) {
+  const ctx = makeContext(options);
+  const start = parseDate(date);
+  if (!Number.isInteger(count)) throw new InputError("days doit etre un entier");
+  const step = count >= 0 ? 1 : -1;
+  let cursor = start;
+  let remaining = Math.abs(count);
+  let guard = 0;
+  while (remaining > 0) {
+    cursor = shift(cursor, step);
+    if (ctx.isOpen(cursor)) remaining -= 1;
+    if (++guard > 100000) throw new InputError("calcul trop long, reduis l'intervalle");
+  }
+  return {
+    from: formatDate(start),
+    days: count,
+    result: formatDate(cursor),
+    calendar: ctx.calendar,
+    zone: ctx.zone,
+  };
+}
+
+/** Compte les jours ouvres, ouvrables ou calendaires entre deux dates. */
+export function countDays(from, to, options = {}) {
+  const ctx = makeContext(options);
+  const start = parseDate(from, "from");
+  const end = parseDate(to, "to");
+  const inclusive = options.inclusive !== false;
+  if (end < start) throw new InputError("to doit etre posterieure ou egale a from");
+
+  let cursor = inclusive ? start : shift(start, 1);
+  const last = inclusive ? end : shift(end, -1);
+  let count = 0;
+  let total = 0;
+  let guard = 0;
+  while (cursor <= last) {
+    total += 1;
+    if (ctx.isOpen(cursor)) count += 1;
+    cursor = shift(cursor, 1);
+    if (++guard > 100000) throw new InputError("intervalle trop large, 100000 jours maximum");
+  }
+  return {
+    from: formatDate(start),
+    to: formatDate(end),
+    inclusive,
+    count,
+    calendar_days: total,
+    calendar: ctx.calendar,
+    zone: ctx.zone,
+  };
+}
+
+/** Ajout de mois avec ecrasement sur le dernier jour du mois, art. 641 CPC. */
+function addMonths(date, months) {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
+  const target = new Date(Date.UTC(year, month + months, 1));
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  return utc(target.getUTCFullYear(), target.getUTCMonth() + 1, Math.min(day, lastDay));
+}
+
+/**
+ * Echeance d'un delai.
+ *
+ * unit = days: delai compte selon le calendrier choisi.
+ * unit = months ou years: report sur le meme chiffre de mois, a defaut le
+ * dernier jour du mois, conformement a l'article 641 du code de procedure
+ * civile.
+ *
+ * rollover = next_business_day applique l'article 642: une echeance qui tombe
+ * un samedi, un dimanche, un jour ferie ou un jour de fermeture est prorogee
+ * au premier jour ouvrable suivant.
+ *
+ * Le report ne se fait jamais sur le calendrier du decompte: un delai compte
+ * en jours calendaires se reporte quand meme sur un jour ouvre, sinon la
+ * regle ne sert a rien. D'ou rollover_calendar, ouvres par defaut.
+ */
+export function deadline(from, options = {}) {
+  const { delay, unit = "days", rollover = "next_business_day" } = options;
+  if (!Number.isInteger(delay) || delay < 0) throw new InputError("delay doit etre un entier positif");
+  if (!["none", "next_business_day", "previous_business_day"].includes(rollover)) {
+    throw new InputError("rollover doit valoir none, next_business_day ou previous_business_day");
+  }
+  const ctx = makeContext(options);
+  const rollCtx = makeContext({
+    zone: options.zone,
+    calendar: options.rollover_calendar ?? "ouvres",
+    closed: options.closed,
+  });
+  const start = parseDate(from, "from");
+
+  let raw;
+  if (unit === "days") {
+    raw = parseDate(addDays(from, delay, options).result);
+  } else if (unit === "months") {
+    raw = addMonths(start, delay);
+  } else if (unit === "years") {
+    raw = addMonths(start, delay * 12);
+  } else {
+    throw new InputError("unit doit valoir days, months ou years");
+  }
+  checkYear(raw.getUTCFullYear(), "echeance");
+
+  let final = raw;
+  if (rollover === "next_business_day") final = roll(rollCtx, raw, 1);
+  if (rollover === "previous_business_day") final = roll(rollCtx, raw, -1);
+
+  return {
+    from: formatDate(start),
+    delay,
+    unit,
+    raw_deadline: formatDate(raw),
+    deadline: formatDate(final),
+    rolled: formatDate(final) !== formatDate(raw),
+    rollover,
+    rollover_calendar: rollCtx.calendar,
+    calendar: ctx.calendar,
+    zone: ctx.zone,
+  };
+}
+
+export function nextBusinessDay(date, options = {}) {
+  const ctx = makeContext(options);
+  const start = parseDate(date);
+  const result = roll(ctx, shift(start, 1), 1);
+  return { from: formatDate(start), result: formatDate(result), calendar: ctx.calendar, zone: ctx.zone };
+}
+
+export function previousBusinessDay(date, options = {}) {
+  const ctx = makeContext(options);
+  const start = parseDate(date);
+  const result = roll(ctx, shift(start, -1), -1);
+  return { from: formatDate(start), result: formatDate(result), calendar: ctx.calendar, zone: ctx.zone };
+}
+
+
+const LABELS = { ouvres: "jours ouvrés", ouvrables: "jours ouvrables",
+  calendaires: "jours calendaires" };
+const $ = (s) => document.querySelector(s);
+const out = (html) => { $("#out").innerHTML = html; };
+const ok = (html) => out('<div class="result ok">' + html + "</div>");
+const ko = (msg) => out('<div class="result ko">' + msg + "</div>");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fr = (iso) => new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR",
+  { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+function guard(fn) {
+  return (event) => {
+    event.preventDefault();
+    try { fn(new FormData($("#f"))); }
+    catch (err) { ko(esc(err.message)); }
+  };
+}
+const mode = $("[name=mode]");
+function sync() {
+  const add = mode.value === "add";
+  $("#to-field").hidden = add;
+  $("#days-field").hidden = !add;
+  $("[name=to]").required = !add;
+}
+mode.addEventListener("change", sync); sync();
+$("#f").addEventListener("submit", guard((d) => {
+  const opts = { calendar: d.get("calendar"), zone: d.get("zone") };
+  if (mode.value === "add") {
+    const r = addDays(d.get("from"), Number(d.get("days")), opts);
+    ok("<strong>" + fr(r.result) + "</strong><p>" + d.get("days") +
+      " " + LABELS[r.calendar] + " après le " + fr(r.from) + ".</p>");
+  } else {
+    const r = countDays(d.get("from"), d.get("to"), opts);
+    ok("<strong>" + r.count + " " + LABELS[r.calendar] + "</strong><p>sur " +
+      r.calendar_days + " jours de calendrier, bornes comprises.</p>");
+  }
+}));
+</script>
+</body>
+</html>

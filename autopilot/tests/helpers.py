@@ -46,6 +46,16 @@ budget = {budget}
 enabled = {enabled}
 mode = "{mode}"
 budget = {budget}
+
+[pack_calendrier]
+enabled = {enabled}
+mode = "{mode}"
+budget = {budget}
+
+[outils_web]
+enabled = {enabled}
+mode = "{mode}"
+budget = {budget}
 """
 
 

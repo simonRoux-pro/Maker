@@ -37,9 +37,13 @@ class TestCycle(IsolatedCase):
         mem = memory.connect()
         history = memory.history(mem)
         self.assertTrue(history)
+        # derive du registre: ajouter une strategie ne doit pas casser ce test
+        from autopilot.config import load
+        from autopilot.strategies import registry
+
         self.assertEqual(
             {row["strategy"] for row in history},
-            {"hello_revenue", "jours_feries_api", "identifiants_api"},
+            set(registry.enabled(load())),
         )
         self.assertEqual(len(memory.cycles(mem)), 1)
         mem.close()
@@ -55,19 +59,31 @@ class TestCycle(IsolatedCase):
         summary = cycle.run()
         verdicts = {r["strategy"]: r["verdict"] for r in summary["analysis"]["strategies"]}
         self.assertEqual(verdicts["hello_revenue"], "observer")
-        self.assertEqual(verdicts["jours_feries_api"], "passer en live")
+        raisons = {
+            r["strategy"]: r["why"] for r in summary["analysis"]["strategies"]
+        }
+        self.assertIn("validation", raisons["hello_revenue"])
+        # une brique de distribution ne se juge pas non plus sur sa marge
+        self.assertEqual(verdicts["outils_web"], "observer")
+        self.assertIn("distribution", raisons["outils_web"])
         kinds = {p["target"]: p["kind"] for p in summary["proposals"]}
         self.assertEqual(kinds["hello_revenue"], "observer")
 
     def test_operator_tasks_are_surfaced(self):
+        from autopilot.config import load
+        from autopilot.strategies import registry
+
         summary = cycle.run()
         tasks = summary["operator_tasks"]
         self.assertTrue(tasks)
-        # seules les strategies vendeuses en demandent, jamais celle de test
-        self.assertEqual(
-            {t["strategy"] for t in tasks},
-            {"jours_feries_api", "identifiants_api"},
-        )
+
+        enabled = registry.enabled(load())
+        # une tache ne peut venir que d'une strategie qui en declare
+        for task in tasks:
+            self.assertIn(task["strategy"], enabled)
+            self.assertIn(task["task"], enabled[task["strategy"]].manifest.needs_operator)
+        # la strategie de validation n'en demande jamais
+        self.assertNotIn("hello_revenue", {t["strategy"] for t in tasks})
 
     def test_implemented_backlog_entry_is_not_reproposed(self):
         summary = cycle.run()

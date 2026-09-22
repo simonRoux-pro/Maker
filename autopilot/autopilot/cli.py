@@ -128,7 +128,11 @@ def cmd_report(args) -> int:
     test_only = frozenset(
         name for name, strategy in registry.discover().items() if strategy.manifest.test_only
     )
-    verdicts = analyze(conn, cfg, test_only)
+    support = frozenset(
+        name for name, strategy in registry.discover().items()
+        if strategy.manifest.kind == "support"
+    )
+    verdicts = analyze(conn, cfg, test_only, support)
     print("verdicts:")
     for row in verdicts["strategies"]:
         print(f"  {row['strategy']}: {row['verdict']} ({row['why']})")

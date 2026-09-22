@@ -1,0 +1,12 @@
+# Site public des outils gratuits. Aucun secret, aucune variable.
+#
+# name doit etre identique au nom de l'application Cloudflare qui lance le
+# build, sinon le deploiement est rejete.
+
+name = "outils"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[observability]
+enabled = true

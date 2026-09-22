@@ -34,13 +34,16 @@ class TestSecondProduct(IsolatedCase):
 
         self.assertNotEqual(project(12, module.ASSUMPTIONS), project(12, first))
 
-    def test_dry_run_writes_only_simulation(self):
+    def test_dry_run_writes_nothing_without_a_listing(self):
         cfg, conn, ctx = self._ctx()
         result = registry.discover()[NAME].dry_run(ctx)
-        self.assertGreater(result.revenue, 0)
+        self.assertEqual(result.revenue, 0.0)
         from autopilot.ledger.queries import cumulative_margin
 
-        self.assertEqual(cumulative_margin(conn, "live")["revenue"], 0.0)
+        self.assertEqual(cumulative_margin(conn, "dry_run")["revenue"], 0.0)
+        self.assertTrue(any("non publiee" in n for n in result.notes))
+        # le potentiel reste lisible, il n'est simplement pas compte
+        self.assertTrue(any("si elle l'etait" in n for n in result.notes))
         conn.close()
 
     def test_nothing_is_deployed_yet(self):
@@ -67,4 +70,16 @@ class TestSecondProductLive(IsolatedCase):
         pending = approvals.list_by_status(conn, "pending")
         payload = next(p for p in pending if p["platform"] == "rapidapi")["payload"]
         self.assertEqual(len(payload["paliers"]), 3)
+        conn.close()
+
+
+class TestPlanBeforeAnything(IsolatedCase):
+    def test_plan_marks_the_steps_that_need_a_human(self):
+        cfg = load()
+        conn = connect()
+        ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+        plan = registry.discover()[NAME].plan(ctx)
+        externes = [s for s in plan.steps if s.external]
+        self.assertEqual(len(externes), 2, "deploiement et publication de la fiche")
+        self.assertEqual(plan.estimated_cost, 0.0)
         conn.close()
