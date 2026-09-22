@@ -1,0 +1,82 @@
+# Publication des bibliotheques sur npm.
+#
+# Declenchement manuel uniquement: une version publiee sur npm ne se retire
+# plus apres 72 heures, ce n'est pas une action a lancer par accident.
+#
+# Secret attendu: NPM_TOKEN, de type Automation.
+#
+# Une version deja presente sur le registre est sautee au lieu de faire
+# echouer le travail: republier a l'identique n'a pas de sens.
+
+name: npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      paquet:
+        description: 'Paquet a publier'
+        required: true
+        default: 'tous'
+        type: choice
+        options: [tous, jours-ouvres-france, identifiants-france]
+
+jobs:
+  publier:
+    name: ${{ matrix.paquet }}
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURE: ${{ secrets.NPM_TOKEN != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        paquet: [jours-ouvres-france, identifiants-france]
+    steps:
+      - name: jeton absent, rien a faire
+        if: env.CONFIGURE != 'true'
+        run: echo "NPM_TOKEN n'est pas configure, publication sautee."
+
+      - uses: actions/checkout@v4
+        if: env.CONFIGURE == 'true'
+
+      - uses: actions/setup-node@v4
+        if: env.CONFIGURE == 'true'
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: ce paquet est-il demande
+        if: env.CONFIGURE == 'true'
+        run: |
+          demande='${{ inputs.paquet }}'
+          if [ "$demande" != "tous" ] && [ "$demande" != "${{ matrix.paquet }}" ]; then
+            echo "SAUTER=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: assembler depuis les moteurs
+        if: env.CONFIGURE == 'true' && env.SAUTER != '1'
+        working-directory: autopilot/products/npm
+        run: node build.mjs
+
+      - name: la copie doit etre a jour dans le depot
+        if: env.CONFIGURE == 'true' && env.SAUTER != '1'
+        run: git diff --exit-code autopilot/products/npm
+
+      - name: tests
+        if: env.CONFIGURE == 'true' && env.SAUTER != '1'
+        working-directory: autopilot/products/npm/${{ matrix.paquet }}
+        run: npm test
+
+      - name: publier si la version est nouvelle
+        if: env.CONFIGURE == 'true' && env.SAUTER != '1'
+        working-directory: autopilot/products/npm/${{ matrix.paquet }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          nom=$(node -p "require('./package.json').name")
+          if npm view "$nom@$version" version >/dev/null 2>&1; then
+            echo "$nom@$version existe deja sur le registre, rien a faire"
+            exit 0
+          fi
+          npm publish --access public
+          echo "$nom@$version publie"

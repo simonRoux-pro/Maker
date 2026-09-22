@@ -1,0 +1,104 @@
+# Deploiement des quatre workers Cloudflare.
+#
+# Ma machine d'execution ne peut pas joindre Cloudflare: le proxy sortant
+# l'interdit. GitHub Actions, lui, le peut. Ce workflow est donc le bras qui
+# me manque, et un seul secret de depot remplace quatre configurations
+# manuelles dans le tableau de bord.
+#
+# Secrets attendus, dans Settings, Secrets and variables, Actions:
+#   CLOUDFLARE_API_TOKEN            obligatoire, modele "Edit Cloudflare Workers"
+#   CLOUDFLARE_ACCOUNT_ID           utile si le jeton voit plusieurs comptes
+#   RAPIDAPI_PROXY_SECRET_MAKER     facultatif, ferme l'acces direct a l'API
+#   RAPIDAPI_PROXY_SECRET_IDENTIFIANTS
+#   RAPIDAPI_PROXY_SECRET_FACTURX
+#
+# Tant que CLOUDFLARE_API_TOKEN est absent, le workflow s'arrete proprement
+# au lieu d'echouer: un pipeline rouge en permanence ne se lit plus.
+
+name: deploy
+
+on:
+  push:
+    paths:
+      - 'autopilot/products/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  workers:
+    name: ${{ matrix.worker }}
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CONFIGURE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - worker: maker
+            dossier: jours_feries_api
+            secret: RAPIDAPI_PROXY_SECRET_MAKER
+          - worker: identifiants
+            dossier: identifiants_api
+            secret: RAPIDAPI_PROXY_SECRET_IDENTIFIANTS
+          - worker: facturx
+            dossier: facturx_api
+            secret: RAPIDAPI_PROXY_SECRET_FACTURX
+          - worker: outils
+            dossier: outils_web
+            secret: ''
+    steps:
+      - name: jeton absent, rien a faire
+        if: env.CONFIGURE != 'true'
+        run: |
+          echo "CLOUDFLARE_API_TOKEN n'est pas configure dans les secrets du depot."
+          echo "Le deploiement est saute, ce n'est pas une erreur."
+
+      - uses: actions/checkout@v4
+        if: env.CONFIGURE == 'true'
+
+      - uses: actions/setup-node@v4
+        if: env.CONFIGURE == 'true'
+        with:
+          node-version: '22'
+
+      - name: verifier que les tests passent avant de deployer
+        if: env.CONFIGURE == 'true'
+        working-directory: autopilot/products/${{ matrix.dossier }}
+        run: npm test
+
+      - name: poser le secret de la marketplace
+        if: env.CONFIGURE == 'true' && matrix.secret != ''
+        working-directory: autopilot/products/${{ matrix.dossier }}
+        env:
+          PROXY_SECRET: ${{ secrets[matrix.secret] }}
+        run: |
+          if [ -n "$PROXY_SECRET" ]; then
+            printf '%s' "$PROXY_SECRET" | npx --yes wrangler@4 secret put RAPIDAPI_PROXY_SECRET
+            echo "secret pose sur ${{ matrix.worker }}"
+          else
+            echo "aucun secret fourni pour ${{ matrix.worker }}, l'API restera ouverte"
+          fi
+
+      - name: deployer
+        if: env.CONFIGURE == 'true'
+        working-directory: autopilot/products/${{ matrix.dossier }}
+        run: npx --yes wrangler@4 deploy
+
+      - name: verifier que le worker repond
+        if: env.CONFIGURE == 'true'
+        run: |
+          url="https://${{ matrix.worker }}.pro-simon-roux.workers.dev/health"
+          for essai in 1 2 3 4 5; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || true)
+            if [ "$code" = "200" ]; then
+              echo "$url repond 200"
+              curl -s "$url"
+              exit 0
+            fi
+            echo "tentative $essai: $code"
+            sleep 5
+          done
+          echo "le worker ne repond pas sur /health"
+          exit 1
