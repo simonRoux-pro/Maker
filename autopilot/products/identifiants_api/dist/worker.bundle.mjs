@@ -275,6 +275,100 @@ export function checkVat(input) {
   };
 }
 
+// ------------------------------------------------------------------ NIR
+
+const CORSE = { "2A": "19", "2B": "18" };
+
+const MONTHS_NIR = {
+  "20": "mois inconnu", "30": "mois inconnu", "40": "mois inconnu",
+  "50": "mois inconnu", "99": "personne nee a l'etranger",
+};
+
+/**
+ * Numero de securite sociale, 15 caracteres: 13 de numero et 2 de cle.
+ *
+ * La cle vaut 97 moins le reste de la division du numero par 97. Les deux
+ * departements corses s'ecrivent 2A et 2B, remplaces par 19 et 18 avant le
+ * calcul: une implementation qui l'oublie rejette toute la Corse.
+ */
+export function checkNir(input) {
+  const nir = cleanup(input, "nir");
+  // 1 sexe + 2 annee + 2 mois + 2 departement + 3 commune + 3 ordre + 2 cle
+  if (!/^[0-9]{5}(?:[0-9]{2}|2[AB])[0-9]{8}$/.test(nir)) {
+    return { nir, valid: false, reason: "un NIR fait 15 caracteres, cle comprise" };
+  }
+
+  const number = nir.slice(0, 13);
+  const given = nir.slice(13);
+  const department = number.slice(5, 7);
+  const normalized = department in CORSE
+    ? number.slice(0, 5) + CORSE[department] + number.slice(7)
+    : number;
+
+  const expected = String(97 - (mod97(normalized) % 97)).padStart(2, "0");
+  const valid = expected === given;
+  const month = number.slice(3, 5);
+
+  return {
+    nir,
+    valid,
+    number,
+    key: given,
+    expected_key: expected,
+    sex: number[0] === "1" ? "homme" : number[0] === "2" ? "femme" : "provisoire",
+    birth_year: number.slice(1, 3),
+    birth_month: month,
+    department,
+    corsica: department in CORSE,
+    note: MONTHS_NIR[month] ?? null,
+    reason: valid ? null : `cle attendue ${expected}`,
+  };
+}
+
+// ------------------------------------------------------------------ TVA
+
+/** Taux francais en vigueur. Metropole; l'outre-mer et la Corse different. */
+export const VAT_RATES = [
+  { rate: 20, label: "taux normal" },
+  { rate: 10, label: "taux intermediaire" },
+  { rate: 5.5, label: "taux reduit" },
+  { rate: 2.1, label: "taux particulier" },
+];
+
+/**
+ * Ventilation d'un montant entre hors taxes, TVA et toutes taxes comprises.
+ *
+ * L'arrondi se fait au centime sur la TVA, puis les deux autres montants en
+ * decoulent: c'est la seule facon d'obtenir trois nombres qui s'additionnent
+ * exactement, ce qu'une facture exige.
+ */
+export function vatBreakdown({ amount, rate = 20, from = "ht" } = {}) {
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new InputError("amount doit etre un nombre positif");
+  }
+  const r = Number(rate);
+  if (!Number.isFinite(r) || r < 0 || r > 100) {
+    throw new InputError("rate doit etre un pourcentage entre 0 et 100");
+  }
+  if (from !== "ht" && from !== "ttc") {
+    throw new InputError('from doit valoir "ht" ou "ttc"');
+  }
+
+  const cents = (n) => Math.round(n * 100) / 100;
+  let ht;
+  let ttc;
+  if (from === "ht") {
+    ht = cents(value);
+    ttc = cents(ht * (1 + r / 100));
+  } else {
+    ttc = cents(value);
+    ht = cents(ttc / (1 + r / 100));
+  }
+  const tva = cents(ttc - ht);
+  return { ht, tva, ttc: cents(ht + tva), rate: r, from };
+}
+
 /**
  * API de validation des identifiants d'entreprise et bancaires, France et SEPA.
  *
@@ -317,6 +411,13 @@ export const OPERATIONS = {
   siret: (p) => checkSiret(required(p, "siret")),
   vat: (p) => checkVat(required(p, "vat")),
   "vat-from-siren": (p) => vatFromSiren(required(p, "siren")),
+  nir: (p) => checkNir(required(p, "nir")),
+  "vat-amount": (p) =>
+    vatBreakdown({
+      amount: Number(required(p, "amount")),
+      rate: p.get("rate") === null || p.get("rate") === "" ? 20 : Number(p.get("rate")),
+      from: p.get("from") ?? "ht",
+    }),
   rib(p) {
     const bank = required(p, "bank");
     const branch = required(p, "branch");
@@ -330,6 +431,7 @@ export const OPERATIONS = {
       code,
       checked: code === "FR" ? "checksum" : "format",
     })),
+    vat_rates: VAT_RATES,
     note:
       "Validation formelle uniquement. Cette API ne dit jamais si une entreprise ou un compte existe.",
   }),
@@ -382,6 +484,8 @@ const ROOT = {
     "GET /v1/siret?siret=35600000009075",
     "GET /v1/vat?vat=FR44732829320",
     "GET /v1/vat-from-siren?siren=732829320",
+    "GET /v1/nir?nir=269054958815780",
+    "GET /v1/vat-amount?amount=100&rate=20&from=ht",
     "GET /v1/reference",
     "POST /v1/batch",
   ],
@@ -504,6 +608,28 @@ export const OPENAPI = {
         summary: "Calculer le numero de TVA francais a partir d'un SIREN",
         parameters: [stringParam("siren", true, "732829320")],
         responses: { 200: { description: "numero de TVA" } },
+      },
+    },
+    "/v1/nir": {
+      get: {
+        summary: "Valider un numero de securite sociale",
+        description:
+          "Cle de controle sur 97. Les departements corses 2A et 2B sont remplaces par 19 et 18 avant le calcul, ce que beaucoup d'implementations oublient.",
+        parameters: [stringParam("nir", true, "269054958815780")],
+        responses: { 200: { description: "validite, sexe, annee, departement" } },
+      },
+    },
+    "/v1/vat-amount": {
+      get: {
+        summary: "Ventiler un montant entre HT, TVA et TTC",
+        description:
+          "L'arrondi se fait au centime sur la TVA, les deux autres montants en decoulent, de sorte que les trois nombres s'additionnent exactement.",
+        parameters: [
+          stringParam("amount", true, "100"),
+          stringParam("rate", false, "20"),
+          stringParam("from", false, "ht"),
+        ],
+        responses: { 200: { description: "ht, tva, ttc" } },
       },
     },
     "/v1/reference": {

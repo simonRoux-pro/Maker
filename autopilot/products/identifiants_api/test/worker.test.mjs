@@ -31,6 +31,12 @@ describe("routes", () => {
     assert.equal(body.valid, true);
   });
 
+  it("valide un NIR et ventile une TVA", async () => {
+    assert.equal((await call("/v1/nir?nir=269054958815780")).body.valid, true);
+    const tva = await call("/v1/vat-amount?amount=100&rate=20");
+    assert.equal(tva.body.ttc, 120);
+  });
+
   it("donne la reference des pays couverts", async () => {
     const { body } = await call("/v1/reference");
     assert.equal(body.iban_countries.length, 37);
@@ -120,8 +126,8 @@ describe("specification", () => {
   it("documente exactement les routes servies", async () => {
     const { body } = await call("/openapi.json");
     assert.deepEqual(Object.keys(body.paths).sort(), [
-      "/v1/batch", "/v1/iban", "/v1/reference", "/v1/rib",
-      "/v1/siren", "/v1/siret", "/v1/vat", "/v1/vat-from-siren",
+      "/v1/batch", "/v1/iban", "/v1/nir", "/v1/reference", "/v1/rib",
+      "/v1/siren", "/v1/siret", "/v1/vat", "/v1/vat-amount", "/v1/vat-from-siren",
     ]);
   });
 

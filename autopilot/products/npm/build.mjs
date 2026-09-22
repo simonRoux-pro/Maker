@@ -9,15 +9,15 @@
  *   node build.mjs
  */
 
-import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
 const PACKAGES = [
-  { name: "jours-ouvres-france", source: ["jours_feries_api", "engine.mjs"] },
-  { name: "identifiants-france", source: ["identifiants_api", "engine.mjs"] },
+  { name: "jours-ouvres-france", product: "jours_feries_api" },
+  { name: "identifiants-france", product: "identifiants_api" },
 ];
 
 const HEADER = `/**
@@ -28,10 +28,22 @@ const HEADER = `/**
 `;
 
 for (const pkg of PACKAGES) {
-  const from = join(here, "..", ...pkg.source);
-  const to = join(here, pkg.name, "index.mjs");
-  writeFileSync(to, HEADER + readFileSync(from, "utf8"), "utf8");
+  const engine = join(here, "..", pkg.product, "engine.mjs");
+  writeFileSync(
+    join(here, pkg.name, "index.mjs"),
+    HEADER + readFileSync(engine, "utf8"),
+    "utf8",
+  );
+
+  // les tests du moteur suivent la copie: un paquet publie sans ses tests a
+  // jour est un paquet dont personne ne peut verifier qu'il vaut le moteur
+  const tests = readFileSync(
+    join(here, "..", pkg.product, "test", "engine.test.mjs"),
+    "utf8",
+  ).replace('from "../engine.mjs"', 'from "../index.mjs"');
+  writeFileSync(join(here, pkg.name, "test", "engine.test.mjs"), tests, "utf8");
 
   const manifest = JSON.parse(readFileSync(join(here, pkg.name, "package.json"), "utf8"));
-  console.log(`${pkg.name}@${manifest.version} assemble`);
+  const count = (tests.match(/\bit\(/g) || []).length;
+  console.log(`${pkg.name}@${manifest.version} assemble, ${count} tests copies`);
 }

@@ -43,6 +43,10 @@ calcul se fait dans votre navigateur.</p>
     <span>Clé de Luhn, exception La Poste, numéro de TVA français.</span></a>
   <a class="card" href="/rib"><strong>Clé RIB</strong>
     <span>Calculer ou vérifier la clé d'un relevé d'identité bancaire.</span></a>
+  <a class="card" href="/nir"><strong>Numéro de sécurité sociale</strong>
+    <span>Clé de contrôle sur 97, Corse comprise.</span></a>
+  <a class="card" href="/tva"><strong>Calcul de TVA</strong>
+    <span>HT vers TTC, TTC vers HT, aux quatre taux français.</span></a>
 </div>
 
 <h2>Pourquoi ces outils existent</h2>
@@ -144,6 +148,69 @@ et le 20 décembre à La Réunion.</p>
 <p>Le 8 mai n'est férié sans interruption que depuis la loi du 2 octobre 1981.
 Avant 1982, un calcul automatique donnerait un résultat faux : nous préférons
 refuser de répondre.</p>
+`,
+  },
+  {
+    path: "/nir",
+    slug: "nir",
+    title: "Vérifier un numéro de sécurité sociale",
+    description:
+      "Vérifier la clé de contrôle d'un numéro de sécurité sociale français, y compris pour les départements corses 2A et 2B. Calcul local, aucune donnée transmise.",
+    engine: "identifiers",
+    body: `
+<h1>Vérifier un numéro de sécurité sociale</h1>
+<p class="lead">Le contrôle se fait dans votre navigateur. Le numéro ne quitte
+pas votre poste et n'est enregistré nulle part.</p>
+
+<div class="tool" id="tool"></div>
+
+<h2>Comment la clé est calculée</h2>
+<p>Un NIR compte quinze caractères : treize pour le numéro, deux pour la clé.
+La clé vaut 97 moins le reste de la division du numéro par 97.</p>
+
+<h2>Le piège de la Corse</h2>
+<p>Les départements corses s'écrivent 2A et 2B dans le numéro. Avant le calcul,
+il faut les remplacer par 19 et 18. Une implémentation qui l'ignore rejette
+tous les numéros corses, ce qui arrive plus souvent qu'on ne le croit dans les
+logiciels de paie.</p>
+
+<h2>Ce que ce contrôle ne dit pas</h2>
+<p>Il établit que le numéro est formellement correct. Il ne dit pas qu'il a été
+attribué, ni à qui. Seule une vérification auprès de l'organisme concerné le
+peut.</p>
+`,
+  },
+  {
+    path: "/tva",
+    slug: "tva",
+    title: "Calcul de TVA : HT vers TTC et TTC vers HT",
+    description:
+      "Calculer la TVA d'un montant dans les deux sens, aux taux français de 20, 10, 5,5 et 2,1 pour cent, avec un arrondi qui garantit que les trois montants s'additionnent.",
+    engine: "identifiers",
+    body: `
+<h1>Calcul de TVA</h1>
+<p class="lead">Donnez un montant hors taxes ou toutes taxes comprises, et le
+taux applicable.</p>
+
+<div class="tool" id="tool"></div>
+
+<h2>Les quatre taux français</h2>
+<p><strong>20 pour cent</strong>, taux normal, appliqué par défaut.
+<strong>10 pour cent</strong>, taux intermédiaire : restauration, transport,
+travaux de rénovation.
+<strong>5,5 pour cent</strong>, taux réduit : produits alimentaires, livres,
+équipements pour personnes handicapées.
+<strong>2,1 pour cent</strong>, taux particulier : médicaments remboursables,
+presse.</p>
+<p>La Corse et les départements d'outre-mer appliquent des taux spécifiques que
+cet outil ne présume pas : saisissez alors le taux directement.</p>
+
+<h2>Pourquoi l'arrondi compte</h2>
+<p>Nous arrondissons la TVA au centime, puis le montant toutes taxes en
+découle. C'est la seule méthode qui garantit que hors taxes plus TVA égale
+exactement toutes taxes. Arrondir les trois montants séparément produit des
+factures dont le total ne tombe pas juste, ce qu'un expert-comptable relève
+immédiatement.</p>
 `,
   },
   {

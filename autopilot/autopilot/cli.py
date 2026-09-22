@@ -2,6 +2,7 @@
 
   python3 -m autopilot.cli cycle              lance un cycle complet
   python3 -m autopilot.cli dry-run [nom]      simule une strategie
+  python3 -m autopilot.cli actions            ecrit ACTIONS.md, tout ce qui reste a faire
   python3 -m autopilot.cli record ...         enregistre un vrai encaissement
   python3 -m autopilot.cli report             etat du Ledger
   python3 -m autopilot.cli approvals          file d'approbation
@@ -69,6 +70,18 @@ def cmd_dry_run(args) -> int:
         for note in result.notes:
             print(f"  note: {note}")
     conn.close()
+    return 0
+
+
+def cmd_actions(args) -> int:
+    from .orchestrator import actions
+
+    cfg = load()
+    conn = connect()
+    ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+    path = actions.write(cfg, ctx)
+    conn.close()
+    print(f"feuille de route ecrite: {path}")
     return 0
 
 
@@ -243,6 +256,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("dry-run", help="simule une strategie")
     p.add_argument("name", nargs="?", help="nom de la strategie, toutes par defaut")
     p.set_defaults(func=cmd_dry_run)
+
+    p = sub.add_parser("actions", help="ecrit la feuille de route des actions manuelles")
+    p.set_defaults(func=cmd_actions)
 
     p = sub.add_parser("record", help="enregistre un vrai mouvement d'argent")
     p.add_argument("kind", choices=["revenue", "cost"])

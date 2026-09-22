@@ -1,14 +1,15 @@
 {
   "name": "identifiants-france",
   "version": "1.0.0",
-  "description": "Validation d'IBAN SEPA, de clé RIB, de SIREN, de SIRET et de TVA intracommunautaire. Exception La Poste gérée. Zéro dépendance.",
+  "description": "Validation d'IBAN SEPA, de clé RIB, de SIREN, de SIRET, de TVA intracommunautaire et de numéro de sécurité sociale, plus le calcul HT TVA TTC. Exceptions La Poste et Corse gérées. Zéro dépendance.",
   "type": "module",
   "main": "index.mjs",
   "exports": "./index.mjs",
   "files": ["index.mjs", "README.md", "LICENSE"],
   "keywords": [
     "iban", "rib", "siren", "siret", "tva", "vat", "validation", "france",
-    "sepa", "luhn", "mod97", "la-poste", "facturation", "comptabilite"
+    "sepa", "luhn", "mod97", "la-poste", "facturation", "comptabilite", "nir", "securite-sociale",
+    "calcul-tva", "ht-ttc"
   ],
   "license": "MIT",
   "engines": { "node": ">=18" },

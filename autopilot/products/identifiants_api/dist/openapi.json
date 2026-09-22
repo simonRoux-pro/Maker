@@ -162,6 +162,68 @@
         }
       }
     },
+    "/v1/nir": {
+      "get": {
+        "summary": "Valider un numero de securite sociale",
+        "description": "Cle de controle sur 97. Les departements corses 2A et 2B sont remplaces par 19 et 18 avant le calcul, ce que beaucoup d'implementations oublient.",
+        "parameters": [
+          {
+            "name": "nir",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "269054958815780"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "validite, sexe, annee, departement"
+          }
+        }
+      }
+    },
+    "/v1/vat-amount": {
+      "get": {
+        "summary": "Ventiler un montant entre HT, TVA et TTC",
+        "description": "L'arrondi se fait au centime sur la TVA, les deux autres montants en decoulent, de sorte que les trois nombres s'additionnent exactement.",
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "100"
+          },
+          {
+            "name": "rate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "20"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ht"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ht, tva, ttc"
+          }
+        }
+      }
+    },
     "/v1/reference": {
       "get": {
         "summary": "Pays couverts et niveau de verification",
@@ -196,6 +258,8 @@
                             "siret",
                             "vat",
                             "vat-from-siren",
+                            "nir",
+                            "vat-amount",
                             "rib",
                             "reference"
                           ]

@@ -190,3 +190,60 @@ class TestBelowThresholdIsKilled(IsolatedCase):
         )
         self.assertNotEqual(verdict["verdict"], KILL)
         conn.close()
+
+
+class TestActionsFile(IsolatedCase):
+    """La feuille de route doit refleter l'etat reel, pas une liste figee."""
+
+    def _render(self):
+        from autopilot.config import load
+        from autopilot.ledger import Ledger, connect
+        from autopilot.orchestrator import actions
+        from autopilot.strategies import Context
+
+        cfg = load()
+        conn = connect()
+        ctx = Context(conn=conn, cfg=cfg, ledger=Ledger(conn, cfg.guardrails.fees))
+        text = actions.render(cfg, ctx)
+        conn.close()
+        return text
+
+    def test_lists_everything_that_remains(self):
+        text = self._render()
+        self.assertIn("Deployer l'API identifiants", text)
+        self.assertIn("Deployer le site public", text)
+        self.assertIn("jeton de publication", text)
+        self.assertIn("pack calendrier", text)
+
+    def test_carries_links_settings_and_copy_texts(self):
+        text = self._render()
+        self.assertIn("https://dash.cloudflare.com", text)
+        self.assertIn("autopilot/products/outils_web", text)
+        self.assertIn("French Business Identifiers Validation", text)
+        self.assertIn("RAPIDAPI_PROXY_SECRET", text)
+
+    def test_totals_the_time(self):
+        text = self._render()
+        self.assertIn("action(s), environ", text)
+        self.assertIn("Aucune carte bancaire", text)
+
+    def test_a_done_step_disappears(self):
+        config = self.root / "config" / "strategies.toml"
+        config.write_text(
+            config.read_text(encoding="utf-8").replace(
+                "[outils_web]\nenabled = true\nmode = \"dry_run\"\nbudget = 0.0",
+                "[outils_web]\nenabled = true\nmode = \"dry_run\"\nbudget = 0.0\n"
+                'base_url = "https://outils.example.workers.dev"',
+            ),
+            encoding="utf-8",
+        )
+        text = self._render()
+        self.assertNotIn("## 2. Deployer le site public", text)
+        self.assertIn("Deja fait", text)
+        self.assertIn("https://outils.example.workers.dev", text)
+
+    def test_the_cycle_regenerates_it(self):
+        from pathlib import Path
+
+        summary = cycle.run()
+        self.assertTrue(Path(summary["actions_path"]).exists())

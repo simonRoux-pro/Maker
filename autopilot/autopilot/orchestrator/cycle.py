@@ -18,7 +18,7 @@ from ..guardrails import killswitch
 from ..ledger import Ledger, connect
 from ..ledger.queries import cumulative_margin
 from ..strategies import Context, registry
-from . import journal
+from . import actions, journal
 from .analyze import PROMOTE, analyze
 from .propose import propose
 
@@ -123,6 +123,9 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
 
     path = journal.write(cycle, summary)
     summary["journal_path"] = str(path)
+
+    # la feuille de route suit l'etat reel: une etape faite en disparait
+    summary["actions_path"] = str(actions.write(cfg, ctx))
 
     live_margin = cumulative_margin(conn, "live")["margin"]
     memory.end_cycle(mem, cycle, live_margin, str(path))

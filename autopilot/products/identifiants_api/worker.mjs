@@ -10,12 +10,15 @@ import {
   IBAN_LENGTHS,
   InputError,
   VAT_FORMATS,
+  VAT_RATES,
   checkIban,
+  checkNir,
   checkRib,
   checkSiren,
   checkSiret,
   checkVat,
   ribKey,
+  vatBreakdown,
   vatFromSiren,
 } from "./engine.mjs";
 
@@ -52,6 +55,13 @@ export const OPERATIONS = {
   siret: (p) => checkSiret(required(p, "siret")),
   vat: (p) => checkVat(required(p, "vat")),
   "vat-from-siren": (p) => vatFromSiren(required(p, "siren")),
+  nir: (p) => checkNir(required(p, "nir")),
+  "vat-amount": (p) =>
+    vatBreakdown({
+      amount: Number(required(p, "amount")),
+      rate: p.get("rate") === null || p.get("rate") === "" ? 20 : Number(p.get("rate")),
+      from: p.get("from") ?? "ht",
+    }),
   rib(p) {
     const bank = required(p, "bank");
     const branch = required(p, "branch");
@@ -65,6 +75,7 @@ export const OPERATIONS = {
       code,
       checked: code === "FR" ? "checksum" : "format",
     })),
+    vat_rates: VAT_RATES,
     note:
       "Validation formelle uniquement. Cette API ne dit jamais si une entreprise ou un compte existe.",
   }),
@@ -117,6 +128,8 @@ const ROOT = {
     "GET /v1/siret?siret=35600000009075",
     "GET /v1/vat?vat=FR44732829320",
     "GET /v1/vat-from-siren?siren=732829320",
+    "GET /v1/nir?nir=269054958815780",
+    "GET /v1/vat-amount?amount=100&rate=20&from=ht",
     "GET /v1/reference",
     "POST /v1/batch",
   ],
@@ -239,6 +252,28 @@ export const OPENAPI = {
         summary: "Calculer le numero de TVA francais a partir d'un SIREN",
         parameters: [stringParam("siren", true, "732829320")],
         responses: { 200: { description: "numero de TVA" } },
+      },
+    },
+    "/v1/nir": {
+      get: {
+        summary: "Valider un numero de securite sociale",
+        description:
+          "Cle de controle sur 97. Les departements corses 2A et 2B sont remplaces par 19 et 18 avant le calcul, ce que beaucoup d'implementations oublient.",
+        parameters: [stringParam("nir", true, "269054958815780")],
+        responses: { 200: { description: "validite, sexe, annee, departement" } },
+      },
+    },
+    "/v1/vat-amount": {
+      get: {
+        summary: "Ventiler un montant entre HT, TVA et TTC",
+        description:
+          "L'arrondi se fait au centime sur la TVA, les deux autres montants en decoulent, de sorte que les trois nombres s'additionnent exactement.",
+        parameters: [
+          stringParam("amount", true, "100"),
+          stringParam("rate", false, "20"),
+          stringParam("from", false, "ht"),
+        ],
+        responses: { 200: { description: "ht, tva, ttc" } },
       },
     },
     "/v1/reference": {

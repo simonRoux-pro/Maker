@@ -186,6 +186,53 @@ $("#f").addEventListener("submit", guard((d) => {
 }));`,
   },
 
+  nir: {
+    html: FORM(`
+  <label>Numéro de sécurité sociale<input type="text" name="nir"
+    placeholder="2 69 05 49 588 157 80" required autocomplete="off" spellcheck="false"></label>`,
+      "Vérifier"),
+    script: `${HELPERS}
+$("#f").addEventListener("submit", guard((d) => {
+  const r = checkNir(d.get("nir"));
+  if (!r.valid) return ko("<strong>Numéro invalide</strong><p>" + esc(r.reason) + "</p>");
+  const ne = r.sex === "femme" ? "née" : r.sex === "homme" ? "né" : "numéro provisoire,";
+  ok("<strong>Numéro valide</strong><p>" + esc(r.sex) + ", " + ne + " en " +
+    esc(r.birth_year) + ", département " + esc(r.department) +
+    (r.corsica ? " (Corse)" : "") + ".</p>" +
+    (r.note ? "<p>" + esc(r.note) + "</p>" : ""));
+}));`,
+  },
+
+  tva: {
+    html: FORM(`
+  <label>Montant<input type="number" name="amount" step="0.01" min="0" value="100" required></label>
+  <label>Ce montant est
+    <select name="from">
+      <option value="ht">hors taxes</option>
+      <option value="ttc">toutes taxes comprises</option>
+    </select>
+  </label>
+  <label>Taux
+    <select name="rate">
+      <option value="20">20 %, taux normal</option>
+      <option value="10">10 %, taux intermédiaire</option>
+      <option value="5.5">5,5 %, taux réduit</option>
+      <option value="2.1">2,1 %, taux particulier</option>
+    </select>
+  </label>`),
+    script: `${HELPERS}
+const euros = (n) => n.toFixed(2).replace(".", ",") + " €";
+$("#f").addEventListener("submit", guard((d) => {
+  const r = vatBreakdown({
+    amount: Number(d.get("amount")), rate: Number(d.get("rate")), from: d.get("from"),
+  });
+  ok("<strong>" + euros(r.ttc) + " TTC</strong><table>" +
+    "<tr><td>Hors taxes</td><td>" + euros(r.ht) + "</td></tr>" +
+    "<tr><td>TVA " + String(r.rate).replace(".", ",") + " %</td><td>" + euros(r.tva) + "</td></tr>" +
+    "<tr><td>Toutes taxes</td><td>" + euros(r.ttc) + "</td></tr></table>");
+}));`,
+  },
+
   rib: {
     html: FORM(`
   <label>Code banque<input type="text" name="bank" placeholder="20041" required

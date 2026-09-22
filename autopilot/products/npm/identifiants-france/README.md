@@ -3,6 +3,9 @@
 Validation d'IBAN, de clé RIB, de SIREN, de SIRET et de numéro de TVA
 intracommunautaire. Zéro dépendance, calcul pur, aucune donnée transmise.
 
+Ajoute aussi la validation du numero de securite sociale et la ventilation
+d'un montant entre HT, TVA et TTC.
+
 ```bash
 npm install identifiants-france
 ```
@@ -12,6 +15,7 @@ npm install identifiants-france
 ```js
 import {
   checkIban, ribKey, checkSiren, checkSiret, checkVat, vatFromSiren,
+  checkNir, vatBreakdown,
 } from "identifiants-france";
 
 checkIban("FR14 2004 1010 0505 0001 3M02 606").valid;   // true
@@ -22,6 +26,10 @@ vatFromSiren("732829320").vat_number;                   // "FR44732829320"
 // La Poste ne suit pas la clé de Luhn
 checkSiret("35600000009075");
 // { valid: true, rule: "la_poste", siren: "356000000", nic: "09075" }
+
+checkNir("2 69 05 49 588 157 80").valid;                // true
+vatBreakdown({ amount: 120, rate: 20, from: "ttc" });
+// { ht: 100, tva: 20, ttc: 120, rate: 20, from: "ttc" }
 ```
 
 ## Les pièges que cette bibliothèque gère
@@ -47,6 +55,14 @@ pour les 26 autres États membres. Aucune ambiguïté n'est laissée à l'appela
 **Les anciennes clés de TVA alphabétiques** ne se recalculent pas. La
 bibliothèque le signale au lieu de les déclarer fausses.
 
+**La Corse dans le NIR.** Les départements 2A et 2B sont remplacés par 19 et 18
+avant le calcul de la clé. Une implémentation qui l'ignore rejette tous les
+numéros corses.
+
+**L'arrondi de la TVA.** La TVA est arrondie au centime, puis le TTC en
+découle. C'est la seule façon d'obtenir trois montants qui s'additionnent
+exactement, ce qu'une facture exige.
+
 ## Ce que cette bibliothèque ne fait pas
 
 Elle ne dit jamais qu'une entreprise ou qu'un compte bancaire **existe**. Elle
@@ -64,6 +80,8 @@ l'existence, seule une consultation officielle fait foi.
 | `checkSiret(siret)` | clé de Luhn sur 14 chiffres, exception La Poste |
 | `checkVat(vat)` | TVA intracommunautaire, 27 États membres |
 | `vatFromSiren(siren)` | calcule le numéro de TVA français |
+| `checkNir(nir)` | numéro de sécurité sociale, clé sur 97 |
+| `vatBreakdown({amount, rate, from})` | ventilation HT, TVA, TTC |
 
 ## Version hébergée
 

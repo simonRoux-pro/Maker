@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Calculer ou vérifier une clé RIB</title>
-<meta name="description" content="Calculer la clé d'un relevé d'identité bancaire français à partir du code banque, du code guichet et du numéro de compte, ou vérifier une clé existante.">
-<link rel="canonical" href="https://outils.pro-simon-roux.workers.dev/rib">
+<title>Vérifier un numéro de sécurité sociale</title>
+<meta name="description" content="Vérifier la clé de contrôle d'un numéro de sécurité sociale français, y compris pour les départements corses 2A et 2B. Calcul local, aucune donnée transmise.">
+<link rel="canonical" href="https://outils.pro-simon-roux.workers.dev/nir">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%231b4fd8%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%2217%22%20rx%3D%222%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%225%22%20fill%3D%22%230f2f8a%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221%22%20fill%3D%22%231b4fd8%22%2F%3E%3C%2Fsvg%3E">
-<meta property="og:title" content="Calculer ou vérifier une clé RIB">
-<meta property="og:description" content="Calculer la clé d'un relevé d'identité bancaire français à partir du code banque, du code guichet et du numéro de compte, ou vérifier une clé existante.">
+<meta property="og:title" content="Vérifier un numéro de sécurité sociale">
+<meta property="og:description" content="Vérifier la clé de contrôle d'un numéro de sécurité sociale français, y compris pour les départements corses 2A et 2B. Calcul local, aucune donnée transmise.">
 <meta property="og:type" content="website">
 <style>
 :root{--bg:#fbfbfc;--panel:#fff;--ink:#16181d;--muted:#5f6672;--line:#e4e7eb;
@@ -68,34 +68,33 @@ font-size:14px;color:var(--muted)}
 </div></header>
 <main class="wrap">
 
-<h1>Clé RIB</h1>
-<p class="lead">Laissez la clé vide pour la calculer, remplissez-la pour la
-vérifier.</p>
+<h1>Vérifier un numéro de sécurité sociale</h1>
+<p class="lead">Le contrôle se fait dans votre navigateur. Le numéro ne quitte
+pas votre poste et n'est enregistré nulle part.</p>
 
 <div class="tool">
 <form id="f">
   
-  <label>Code banque<input type="text" name="bank" placeholder="20041" required
-    autocomplete="off" spellcheck="false"></label>
-  <label>Code guichet<input type="text" name="branch" placeholder="01005" required
-    autocomplete="off" spellcheck="false"></label>
-  <label>Numéro de compte<input type="text" name="account" placeholder="0500013M026" required
-    autocomplete="off" spellcheck="false"></label>
-  <label>Clé, facultative<input type="text" name="key" placeholder="06"
-    autocomplete="off" spellcheck="false"></label>
-  <button type="submit">Calculer</button>
+  <label>Numéro de sécurité sociale<input type="text" name="nir"
+    placeholder="2 69 05 49 588 157 80" required autocomplete="off" spellcheck="false"></label>
+  <button type="submit">Vérifier</button>
 </form>
 <output id="out" aria-live="polite"></output></div>
 
-<h2>La formule</h2>
-<p>La clé vaut 97 moins le reste de la division par 97 de
-(89 × code banque + 15 × code guichet + 3 × numéro de compte).</p>
+<h2>Comment la clé est calculée</h2>
+<p>Un NIR compte quinze caractères : treize pour le numéro, deux pour la clé.
+La clé vaut 97 moins le reste de la division du numéro par 97.</p>
 
-<h2>Le piège des lettres</h2>
-<p>Un numéro de compte peut contenir des lettres, converties avant le calcul
-par une table officielle. Elle n'est pas alphabétique : A vaut 1, mais S vaut
-2 et non 19, et Z vaut 9. Supposer A égale 1, B égale 2 et ainsi de suite
-jusqu'à Z donne une clé fausse dès qu'une lettre après I apparaît.</p>
+<h2>Le piège de la Corse</h2>
+<p>Les départements corses s'écrivent 2A et 2B dans le numéro. Avant le calcul,
+il faut les remplacer par 19 et 18. Une implémentation qui l'ignore rejette
+tous les numéros corses, ce qui arrive plus souvent qu'on ne le croit dans les
+logiciels de paie.</p>
+
+<h2>Ce que ce contrôle ne dit pas</h2>
+<p>Il établit que le numéro est formellement correct. Il ne dit pas qu'il a été
+attribué, ni à qui. Seule une vérification auprès de l'organisme concerné le
+peut.</p>
 
 <footer>
 <h2>Les mêmes calculs, ailleurs</h2>
@@ -488,15 +487,13 @@ function guard(fn) {
   };
 }
 $("#f").addEventListener("submit", guard((d) => {
-  const key = (d.get("key") || "").trim();
-  if (key) {
-    const r = checkRib(d.get("bank"), d.get("branch"), d.get("account"), key);
-    return r.valid
-      ? ok("<strong>Clé correcte</strong>")
-      : ko("<strong>Clé incorrecte</strong><p>" + esc(r.reason) + "</p>");
-  }
-  const r = ribKey(d.get("bank"), d.get("branch"), d.get("account"));
-  ok("<strong>Clé " + esc(r.key) + "</strong>");
+  const r = checkNir(d.get("nir"));
+  if (!r.valid) return ko("<strong>Numéro invalide</strong><p>" + esc(r.reason) + "</p>");
+  const ne = r.sex === "femme" ? "née" : r.sex === "homme" ? "né" : "numéro provisoire,";
+  ok("<strong>Numéro valide</strong><p>" + esc(r.sex) + ", " + ne + " en " +
+    esc(r.birth_year) + ", département " + esc(r.department) +
+    (r.corsica ? " (Corse)" : "") + ".</p>" +
+    (r.note ? "<p>" + esc(r.note) + "</p>" : ""));
 }));
 </script>
 </body>

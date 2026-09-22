@@ -4,11 +4,13 @@ import { describe, it } from "node:test";
 import {
   InputError,
   checkIban,
+  checkNir,
   checkRib,
   checkSiren,
   checkSiret,
   checkVat,
   ribKey,
+  vatBreakdown,
   vatFromSiren,
 } from "../index.mjs";
 
@@ -153,5 +155,78 @@ describe("TVA intracommunautaire", () => {
     const res = checkVat("FRAB732829320");
     assert.equal(res.checked, "format");
     assert.match(res.note, /alphabetique/);
+  });
+});
+
+describe("numero de securite sociale", () => {
+  it("valide un NIR publiquement cite comme exemple", () => {
+    const res = checkNir("2 69 05 49 588 157 80");
+    assert.equal(res.valid, true);
+    assert.equal(res.sex, "femme");
+    assert.equal(res.birth_year, "69");
+    assert.equal(res.department, "49");
+  });
+
+  it("rejette une cle fausse", () => {
+    const res = checkNir("269054958815781");
+    assert.equal(res.valid, false);
+    assert.match(res.reason, /80/);
+  });
+
+  it("gere la Corse, que beaucoup d'implementations rejettent", () => {
+    const res = checkNir("180122A12345602");
+    assert.equal(res.valid, true);
+    assert.equal(res.corsica, true);
+    assert.equal(res.department, "2A");
+  });
+
+  it("refuse une longueur incorrecte", () => {
+    assert.match(checkNir("26905495881578").reason, /15 caracteres/);
+    assert.match(checkNir("2690549588157800").reason, /15 caracteres/);
+  });
+
+  it("signale un mois conventionnel", () => {
+    const res = checkNir("199" + "99" + "75" + "123" + "456" + "00");
+    assert.equal(res.birth_month, "99");
+    assert.match(res.note, /etranger/);
+  });
+});
+
+describe("ventilation de TVA", () => {
+  it("calcule le TTC depuis le HT", () => {
+    assert.deepEqual(vatBreakdown({ amount: 100, rate: 20 }), {
+      ht: 100, tva: 20, ttc: 120, rate: 20, from: "ht",
+    });
+  });
+
+  it("retrouve le HT depuis le TTC", () => {
+    const res = vatBreakdown({ amount: 120, rate: 20, from: "ttc" });
+    assert.equal(res.ht, 100);
+    assert.equal(res.tva, 20);
+  });
+
+  it("donne toujours trois montants qui s'additionnent", () => {
+    for (const amount of [19.99, 33.33, 0.01, 1234.56, 7.77]) {
+      for (const rate of [20, 10, 5.5, 2.1]) {
+        const r = vatBreakdown({ amount, rate });
+        assert.equal(
+          Math.round((r.ht + r.tva) * 100) / 100,
+          r.ttc,
+          `${amount} a ${rate} pourcent`,
+        );
+      }
+    }
+  });
+
+  it("accepte un taux nul", () => {
+    const res = vatBreakdown({ amount: 50, rate: 0 });
+    assert.equal(res.tva, 0);
+    assert.equal(res.ttc, 50);
+  });
+
+  it("refuse une entree absurde", () => {
+    assert.throws(() => vatBreakdown({ amount: -1 }), InputError);
+    assert.throws(() => vatBreakdown({ amount: 10, rate: 150 }), InputError);
+    assert.throws(() => vatBreakdown({ amount: 10, from: "net" }), InputError);
   });
 });
