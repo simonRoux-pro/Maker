@@ -84,6 +84,9 @@ class StrategyConfig:
 class Config:
     guardrails: Guardrails
     strategies: dict[str, StrategyConfig] = field(default_factory=dict)
+    # etat operationnel du depot, ce qui n'appartient a aucune strategie:
+    # jetons poses dans les secrets, identifiants de compte, et ainsi de suite
+    state: dict = field(default_factory=dict)
 
 
 def _read(path: Path) -> dict:
@@ -103,6 +106,7 @@ def load(config_path: Path | None = None, strategies_path: Path | None = None) -
     cfg_dir = config_dir()
     gpath = config_path or cfg_dir / "guardrails.toml"
     spath = strategies_path or cfg_dir / "strategies.toml"
+    epath = cfg_dir / "etat.toml"
 
     raw = _read(gpath)
     b = _require(raw, "budget", gpath)
@@ -177,4 +181,5 @@ def load(config_path: Path | None = None, strategies_path: Path | None = None) -
                 },
             )
 
-    return Config(guardrails=guardrails, strategies=strategies)
+    state = _read(epath) if epath.exists() else {}
+    return Config(guardrails=guardrails, strategies=strategies, state=state)

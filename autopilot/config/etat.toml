@@ -1,0 +1,12 @@
+# Etat operationnel du depot, ce qui n'appartient a aucune strategie en
+# particulier. Passe a true quand c'est fait, la feuille de route s'ajuste.
+
+# Secret CLOUDFLARE_API_TOKEN present dans Settings, Secrets and variables,
+# Actions du depot. Il suffit a lui seul a deployer les quatre workers.
+cloudflare_token = false
+
+# Secret NPM_TOKEN present au meme endroit.
+npm_token = false
+
+# Identifiant de compte Cloudflare, utile si le jeton voit plusieurs comptes.
+cloudflare_account_id = false

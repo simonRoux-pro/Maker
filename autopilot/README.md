@@ -119,6 +119,23 @@ tests/          les garde-fous sont testes, un garde-fou qui ne bloque pas est u
   tourne en dry-run, et ses deux actions reelles restent refusees tant que les
   plateformes ne sont pas dans la liste blanche.
 
+## Ce que le systeme peut faire seul
+
+L'environnement d'execution ne joint que les registres de paquets et GitHub.
+Cloudflare, les marketplaces et les plateformes de paiement sont hors
+d'atteinte depuis cette machine.
+
+GitHub Actions, lui, joint tout. Deux workflows servent donc de bras:
+
+- `.github/workflows/deploy.yml` deploie les quatre workers Cloudflare,
+  lance leurs tests avant, et verifie que chacun repond sur `/health`
+- `.github/workflows/npm.yml` publie les bibliotheques, en sautant une
+  version deja presente sur le registre
+
+Tant que les secrets du depot sont absents, les deux s'arretent proprement au
+lieu d'echouer. Un seul secret, `CLOUDFLARE_API_TOKEN`, remplace quatre
+configurations manuelles et rend tous les deploiements suivants automatiques.
+
 ## Ou regarder si tu ne lis qu'une chose
 
 `journal/` pour le dernier compte-rendu. Sa derniere section liste ce qui

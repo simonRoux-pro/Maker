@@ -19,111 +19,52 @@ from ..strategies import Context, registry
 # et tout ce qu'il faut sous la main pour la faire.
 BLOCKS = [
     {
-        "id": "worker_identifiants",
-        "strategy": "identifiants_api",
-        "titre": "Deployer l'API identifiants sur Cloudflare",
-        "duree": "5 min",
-        "done": lambda o: bool(o.get("base_url")),
-        "liens": [("Tableau de bord Cloudflare", "https://dash.cloudflare.com")],
+        "id": "secrets_depot",
+        "state": True,
+        "strategy": None,
+        "titre": "Coller deux jetons dans les secrets du depot",
+        "duree": "6 min",
+        "done": lambda s: bool(s.get("cloudflare_token")),
+        "liens": [
+            (
+                "Secrets du depot",
+                "https://github.com/simonRoux-pro/Maker/settings/secrets/actions",
+            ),
+            (
+                "Creer le jeton Cloudflare, modele Edit Cloudflare Workers",
+                "https://dash.cloudflare.com/profile/api-tokens",
+            ),
+            ("Creer le jeton npm, type Automation", "https://www.npmjs.com/settings/~/tokens"),
+        ],
         "etapes": [
-            "Workers & Pages, Create, Connect GitHub",
-            "Nom de l'application: identifiants  (il doit correspondre au wrangler.toml)",
-            "Depot: simonRoux-pro/Maker",
-            "Branche: claude/autopilot-revenue-system-p8k3o1",
-            "Root directory: autopilot/products/identifiants_api",
-            "Build command: vide",
-            "Deploy command: npx wrangler deploy",
+            "Cloudflare, My Profile, API Tokens, Create Token,"
+            " modele Edit Cloudflare Workers, copier la valeur",
+            "Dans les secrets du depot, New repository secret,"
+            " nom CLOUDFLARE_API_TOKEN, coller la valeur",
+            "Ajouter aussi CLOUDFLARE_ACCOUNT_ID si le jeton voit plusieurs comptes,"
+            " l'identifiant est en bas de la page d'accueil Cloudflare",
+            "npm, Access Tokens, Generate New Token, type Automation",
+            "Second secret, nom NPM_TOKEN, coller la valeur",
         ],
         "verif": [
-            "https://identifiants.pro-simon-roux.workers.dev/health"
-            " doit repondre protected:false",
-            "https://identifiants.pro-simon-roux.workers.dev/v1/siret?siret=35600000009075"
-            " doit repondre valid:true avec rule:la_poste",
+            "onglet Actions du depot, relancer le workflow deploy:"
+            " https://github.com/simonRoux-pro/Maker/actions/workflows/deploy.yml",
+            "les quatre workers doivent se deployer et repondre sur /health",
         ],
-        "rendre": ["l'URL du worker"],
-    },
-    {
-        "id": "worker_outils",
-        "strategy": "outils_web",
-        "titre": "Deployer le site public des outils gratuits",
-        "duree": "5 min",
-        "done": lambda o: bool(o.get("base_url")),
-        "liens": [("Tableau de bord Cloudflare", "https://dash.cloudflare.com")],
-        "etapes": [
-            "Workers & Pages, Create, Connect GitHub",
-            "Nom de l'application: outils",
-            "Depot: simonRoux-pro/Maker",
-            "Branche: claude/autopilot-revenue-system-p8k3o1",
-            "Root directory: autopilot/products/outils_web",
-            "Build command: vide",
-            "Deploy command: npx wrangler deploy",
-            "Aucun secret, aucune variable: ce site doit rester lisible par tous",
-        ],
-        "verif": [
-            "https://outils.pro-simon-roux.workers.dev/ doit afficher les huit outils",
-            "https://outils.pro-simon-roux.workers.dev/sitemap.xml doit lister les pages",
-        ],
-        "rendre": ["l'URL du site"],
-    },
-    {
-        "id": "fiche_identifiants",
-        "strategy": "identifiants_api",
-        "titre": "Publier la fiche de l'API identifiants sur la marketplace",
-        "duree": "10 min",
-        "done": lambda o: bool(o.get("listing_url")),
-        "depend": "worker_identifiants",
-        "liens": [("Rapid Studio", "https://rapidapi.com/studio")],
-        "etapes": [
-            "Add API Project, import OpenAPI par fichier",
-            "Telecharger d'abord la specification:"
-            " https://identifiants.pro-simon-roux.workers.dev/openapi.json?download=1",
-            "Reprendre les textes de la section Textes plus bas",
-            "Creer les trois paliers: Basic 0 USD / 500, Pro 9 USD / 25000,"
-            " Ultra 29 USD / 250000, Pro marque Recommended",
-            "Ligne Requests: 500, 25000, 250000. Ligne hard-limit BASIC: 500",
-            "Health Check URL: /health",
-            "Visibility: public, apres les tarifs",
-            "Recuperer le Proxy Secret, le poser en variable de build du worker"
-            " identifiants, type Secret, nom RAPIDAPI_PROXY_SECRET",
-            "Changer la Deploy command en: echo \"$RAPIDAPI_PROXY_SECRET\" |"
-            " npx wrangler secret put RAPIDAPI_PROXY_SECRET && npx wrangler deploy",
-            "Relancer le build",
-        ],
-        "verif": [
-            "https://identifiants.pro-simon-roux.workers.dev/health"
-            " doit passer a protected:true",
-        ],
-        "rendre": ["le lien public View in Hub"],
-    },
-    {
-        "id": "worker_facturx",
-        "strategy": "facturx_api",
-        "titre": "Deployer l'API facturation electronique sur Cloudflare",
-        "duree": "5 min",
-        "done": lambda o: bool(o.get("base_url")),
-        "liens": [("Tableau de bord Cloudflare", "https://dash.cloudflare.com")],
-        "etapes": [
-            "Workers & Pages, Create, Connect GitHub",
-            "Nom de l'application: facturx",
-            "Depot: simonRoux-pro/Maker",
-            "Branche: claude/autopilot-revenue-system-p8k3o1",
-            "Root directory: autopilot/products/facturx_api",
-            "Build command: vide",
-            "Deploy command: npx wrangler deploy",
-        ],
-        "verif": [
-            "https://facturx.pro-simon-roux.workers.dev/v1/checks"
-            " doit lister les controles exerces",
-        ],
-        "rendre": ["l'URL du worker"],
+        "rendre": ["un message: les jetons sont poses"],
+        "pourquoi": (
+            "Ce seul geste remplace quatre configurations manuelles dans le tableau "
+            "de bord Cloudflare, et rend tous les deploiements suivants automatiques. "
+            "Ma machine ne peut pas joindre Cloudflare, mais GitHub Actions le peut."
+        ),
     },
     {
         "id": "fiche_facturx",
         "strategy": "facturx_api",
-        "titre": "Publier la fiche facturation electronique, la plus chere des quatre",
+        "titre": "Publier la fiche facturation electronique, la plus rentable",
         "duree": "10 min",
         "done": lambda o: bool(o.get("listing_url")),
-        "depend": "worker_facturx",
+        "depend": "secrets_depot",
         "liens": [("Rapid Studio", "https://rapidapi.com/studio")],
         "etapes": [
             "Add API Project, import OpenAPI par fichier",
@@ -135,35 +76,43 @@ BLOCKS = [
             "Ligne Requests: 100, 5000, 50000, 500000. hard-limit BASIC: 100",
             "Health Check URL: /health",
             "Visibility: public, apres les tarifs",
-            "Recuperer le Proxy Secret, le poser en variable de build du worker"
-            " facturx, puis changer la Deploy command en: echo"
-            " \"$RAPIDAPI_PROXY_SECRET\" | npx wrangler secret put"
-            " RAPIDAPI_PROXY_SECRET && npx wrangler deploy",
+            "Recuperer le Proxy Secret et le coller dans un secret du depot nomme"
+            " RAPIDAPI_PROXY_SECRET_FACTURX, le workflow s'occupe du reste",
         ],
         "verif": [
             "https://facturx.pro-simon-roux.workers.dev/health"
-            " doit passer a protected:true",
+            " doit passer a protected:true apres le prochain deploiement",
         ],
         "rendre": ["le lien public View in Hub"],
+        "pourquoi": (
+            "Plafond modelise 168 EUR par mois contre 43 pour la premiere API, "
+            "parce que la conformite se vend 29 a 299 dollars la ou un utilitaire "
+            "se vend 9. L'obligation legale est entree en vigueur le 1er septembre "
+            "2026."
+        ),
     },
     {
-        "id": "npm_token",
-        "strategy": "npm_packages",
-        "titre": "Creer un compte npm et un jeton de publication",
-        "duree": "3 min",
-        "done": lambda o: bool(o.get("token_ready")),
-        "liens": [
-            ("Creer le compte", "https://www.npmjs.com/signup"),
-            ("Generer le jeton", "https://www.npmjs.com/settings/~/tokens"),
-        ],
+        "id": "fiche_identifiants",
+        "strategy": "identifiants_api",
+        "titre": "Publier la fiche identifiants",
+        "duree": "8 min",
+        "done": lambda o: bool(o.get("listing_url")),
+        "depend": "secrets_depot",
+        "liens": [("Rapid Studio", "https://rapidapi.com/studio")],
         "etapes": [
-            "Creer le compte, aucune carte bancaire demandee",
-            "Access Tokens, Generate New Token, type Automation",
-            "Coller le jeton dans autopilot/.env sous NPM_TOKEN=...",
-            "Ce fichier est ignore par git, le jeton ne part jamais dans le depot",
+            "Add API Project, import OpenAPI par fichier",
+            "Specification: https://identifiants.pro-simon-roux.workers.dev/openapi.json?download=1",
+            "Paliers: Basic 0 USD / 500, Pro 9 USD / 25000, Ultra 29 USD / 250000",
+            "Health Check URL: /health",
+            "Visibility: public, apres les tarifs",
+            "Proxy Secret a coller dans le secret de depot"
+            " RAPIDAPI_PROXY_SECRET_IDENTIFIANTS",
         ],
-        "verif": ["rien a verifier, je m'occupe de la publication ensuite"],
-        "rendre": ["un simple message: le jeton est en place"],
+        "verif": [
+            "https://identifiants.pro-simon-roux.workers.dev/v1/siret?siret=35600000009075"
+            " doit repondre valid:true avec rule:la_poste",
+        ],
+        "rendre": ["le lien public View in Hub"],
     },
     {
         "id": "fiche_pack",
@@ -268,8 +217,12 @@ TEXTES = {
 }
 
 
-def _options(cfg: Config, strategy: str) -> dict:
-    scfg = cfg.strategies.get(strategy)
+def _options(cfg: Config, block: dict) -> dict:
+    """Le contexte dans lequel un bloc juge s'il est fait: soit les options de
+    sa strategie, soit l'etat operationnel du depot."""
+    if block.get("state"):
+        return dict(cfg.state)
+    scfg = cfg.strategies.get(block["strategy"])
     return dict(scfg.options) if scfg else {}
 
 
@@ -277,7 +230,7 @@ def render(cfg: Config, ctx: Context) -> str:
     faits = []
     restants = []
     for block in BLOCKS:
-        (faits if block["done"](_options(cfg, block["strategy"])) else restants).append(block)
+        (faits if block["done"](_options(cfg, block)) else restants).append(block)
 
     total = sum(int(b["duree"].split()[0]) for b in restants)
     lines = [
@@ -301,6 +254,8 @@ def render(cfg: Config, ctx: Context) -> str:
             "",
             f"Duree: {block['duree']}.",
         ]
+        if block.get("pourquoi"):
+            lines += ["", block["pourquoi"]]
         if block.get("depend"):
             nom = next(b["titre"] for b in BLOCKS if b["id"] == block["depend"])
             lines.append(f"A faire apres: {nom}.")
@@ -332,7 +287,8 @@ def render(cfg: Config, ctx: Context) -> str:
         "",
     ]
     for name, strategy in sorted(registry.discover().items()):
-        options = _options(cfg, name)
+        scfg = cfg.strategies.get(name)
+        options = dict(scfg.options) if scfg else {}
         url = options.get("listing_url") or options.get("base_url")
         if url:
             lines.append(f"- {name}: {url}")

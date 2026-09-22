@@ -210,17 +210,22 @@ class TestActionsFile(IsolatedCase):
 
     def test_lists_everything_that_remains(self):
         text = self._render()
-        self.assertIn("Deployer l'API identifiants", text)
-        self.assertIn("Deployer le site public", text)
-        self.assertIn("jeton de publication", text)
+        self.assertIn("Coller deux jetons", text)
+        self.assertIn("facturation electronique", text)
         self.assertIn("pack calendrier", text)
+
+    def test_one_secret_replaces_the_manual_deployments(self):
+        text = self._render()
+        # plus aucun deploiement manuel de worker dans la feuille de route
+        self.assertNotIn("Root directory", text)
+        self.assertIn("CLOUDFLARE_API_TOKEN", text)
+        self.assertIn("workflows/deploy.yml", text)
 
     def test_carries_links_settings_and_copy_texts(self):
         text = self._render()
-        self.assertIn("https://dash.cloudflare.com", text)
-        self.assertIn("autopilot/products/outils_web", text)
-        self.assertIn("French Business Identifiers Validation", text)
-        self.assertIn("RAPIDAPI_PROXY_SECRET", text)
+        self.assertIn("https://dash.cloudflare.com/profile/api-tokens", text)
+        self.assertIn("French E-Invoice Compliance Check", text)
+        self.assertIn("RAPIDAPI_PROXY_SECRET_FACTURX", text)
 
     def test_totals_the_time(self):
         text = self._render()
@@ -228,19 +233,16 @@ class TestActionsFile(IsolatedCase):
         self.assertIn("Aucune carte bancaire", text)
 
     def test_a_done_step_disappears(self):
-        config = self.root / "config" / "strategies.toml"
-        config.write_text(
-            config.read_text(encoding="utf-8").replace(
-                "[outils_web]\nenabled = true\nmode = \"dry_run\"\nbudget = 0.0",
-                "[outils_web]\nenabled = true\nmode = \"dry_run\"\nbudget = 0.0\n"
-                'base_url = "https://outils.example.workers.dev"',
-            ),
-            encoding="utf-8",
+        avant = self._render()
+        self.assertIn("## 1. Coller deux jetons", avant)
+
+        (self.root / "config" / "etat.toml").write_text(
+            "cloudflare_token = true\nnpm_token = true\n", encoding="utf-8"
         )
-        text = self._render()
-        self.assertNotIn("## 2. Deployer le site public", text)
-        self.assertIn("Deja fait", text)
-        self.assertIn("https://outils.example.workers.dev", text)
+        apres = self._render()
+        self.assertNotIn("## 1. Coller deux jetons", apres)
+        self.assertIn("Deja fait", apres)
+        self.assertIn("Coller deux jetons", apres)
 
     def test_the_cycle_regenerates_it(self):
         from pathlib import Path
