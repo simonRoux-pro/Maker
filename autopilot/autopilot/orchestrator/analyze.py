@@ -23,6 +23,7 @@ def analyze(
     cfg: Config,
     test_only: frozenset[str] = frozenset(),
     support: frozenset[str] = frozenset(),
+    ceilings: dict[str, float | None] | None = None,
 ) -> dict:
     live = margin_by_strategy(conn, "live")
     dry = {r["strategy"]: r for r in margin_by_strategy(conn, "dry_run")}
@@ -34,7 +35,13 @@ def analyze(
         live_row = next((r for r in live if r["strategy"] == name), None)
         dry_row = dry.get(name)
         verdict, why = _verdict(
-            scfg, live_row, dry_row, name in test_only, name in support
+            scfg,
+            live_row,
+            dry_row,
+            name in test_only,
+            name in support,
+            (ceilings or {}).get(name),
+            cfg.guardrails.min_monthly_margin,
         )
         verdicts.append(
             {
@@ -58,7 +65,13 @@ def analyze(
 
 
 def _verdict(
-    scfg, live_row, dry_row, test_only: bool = False, support: bool = False
+    scfg,
+    live_row,
+    dry_row,
+    test_only: bool = False,
+    support: bool = False,
+    ceiling: float | None = None,
+    minimum: float = 0.0,
 ) -> tuple[str, str]:
     if scfg is None:
         return KILL, "plus aucune configuration, code orphelin"
@@ -71,6 +84,16 @@ def _verdict(
             WATCH,
             "brique de distribution: elle n'a pas de revenu propre, "
             "son effet se lit sur les autres strategies",
+        )
+
+    # Le plafond est ce que le modele donne au mieux, pas une etape. Une
+    # strategie qui ne peut pas atteindre le minimum ne le pourra jamais en
+    # l'etat: il faut changer ses hypotheses ou l'abandonner.
+    if minimum > 0 and ceiling is not None and ceiling < minimum:
+        return (
+            KILL,
+            f"plafond du modele {ceiling:.2f} EUR par mois, sous le minimum "
+            f"de {minimum:.2f} EUR",
         )
 
     if live_row and (live_row["revenue"] or live_row["cost"]):

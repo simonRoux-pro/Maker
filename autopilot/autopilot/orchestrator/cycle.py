@@ -76,7 +76,34 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
         name for name, strategy in registry.discover().items()
         if strategy.manifest.kind == "support"
     )
-    analysis = analyze(conn, cfg, test_only, support)
+    seuil = cfg.guardrails.min_monthly_margin
+    ceilings = {}
+    viability = []
+    for name, strategy in registry.discover().items():
+        method = getattr(strategy, "monthly_ceiling", None)
+        if method is None:
+            continue
+        try:
+            ceilings[name] = method()
+        except TypeError:
+            ceilings[name] = method(ctx)
+        besoin = None
+        views = getattr(strategy, "views_needed", None)
+        if views is not None:
+            try:
+                besoin = views(seuil)
+            except TypeError:
+                besoin = views(seuil, ctx)
+        viability.append(
+            {
+                "strategy": name,
+                "ceiling": ceilings[name],
+                "views_needed": besoin,
+                "viable": ceilings[name] is not None and ceilings[name] >= seuil,
+            }
+        )
+
+    analysis = analyze(conn, cfg, test_only, support, ceilings)
     proposals = propose(mem, analysis)
     pending = approvals.list_by_status(conn, "pending")
 
@@ -89,6 +116,8 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
         "proposals": proposals,
         "pending_approvals": pending,
         "operator_tasks": operator_tasks,
+        "viability": viability,
+        "min_monthly_margin": seuil,
         "killswitch": killswitch.is_active(conn, cfg.guardrails),
     }
 

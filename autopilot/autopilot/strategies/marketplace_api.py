@@ -15,7 +15,7 @@ from __future__ import annotations
 from datetime import date
 
 from ..approvals.action import RealAction
-from .base import Context, Plan, RunResult, Step, Strategy
+from .base import Context, Plan, RunResult, Step, Strategy, traffic_needed
 
 # Hypotheses par defaut, volontairement basses. Une fiche dans une niche
 # francaise ne recoit pas un trafic de masse.
@@ -84,6 +84,23 @@ class MarketplaceApiStrategy(Strategy):
     def project(self, months: int = 12) -> list[dict]:
         return project(months, self.assumptions)
 
+    # --------------------------------------------------------- viabilite
+
+    def monthly_ceiling(self) -> float:
+        """Marge nette mensuelle du modele une fois le regime etabli.
+
+        Le churn borne la croissance, donc cette valeur est un plafond, pas une
+        etape vers mieux. C'est elle qu'on compare au seuil de viabilite.
+        """
+        return self.project(36)[-1]["net"]
+
+    def net_for_views(self, views: int) -> float:
+        return project(36, {**self.assumptions, "listing_views_per_month": views})[-1]["net"]
+
+    def views_needed(self, target: float) -> int | None:
+        """Visites mensuelles de la fiche necessaires pour tenir le seuil."""
+        return traffic_needed(self.net_for_views, target)
+
     def operator_tasks(self, ctx: Context) -> list[str]:
         tasks = []
         if not self.deployed(ctx):
@@ -142,7 +159,19 @@ class MarketplaceApiStrategy(Strategy):
                 f"en ligne: {base_url}" if base_url else "pas encore deployee",
                 "commission marketplace 25 pourcent, frais de versement 2 pourcent",
                 "les versements arrivent avec environ deux mois de decalage",
+                self._viability_note(ctx),
             ],
+        )
+
+    def _viability_note(self, ctx: Context) -> str:
+        seuil = ctx.cfg.guardrails.min_monthly_margin
+        besoin = self.views_needed(seuil)
+        if besoin is None:
+            return f"le modele ne peut pas atteindre {seuil} EUR par mois, a abandonner"
+        actuel = self.assumptions["listing_views_per_month"]
+        return (
+            f"seuil de {seuil} EUR par mois atteint a partir de {besoin} visites "
+            f"mensuelles de la fiche, contre {actuel} supposees"
         )
 
     def dry_run(self, ctx: Context) -> RunResult:

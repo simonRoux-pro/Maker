@@ -45,6 +45,17 @@ Un cout nul sur une API deja autorisee part sans validation. Tout ce qui coute
 de l'argent ou publie vers l'exterieur atterrit dans la file d'approbation et
 y reste.
 
+## Le seuil de viabilite
+
+`config/guardrails.toml`, section `[objectif]`. Une strategie dont le modele ne
+peut pas atteindre cette marge nette mensuelle n'est pas developpee, et une
+strategie existante qui passe dessous est tuee.
+
+Le seuil est compare au **plafond** du modele, c'est-a-dire a ce qu'il donne au
+mieux une fois le regime etabli, jamais a un espoir de croissance. Chaque
+compte-rendu de cycle indique, pour chaque strategie, ce plafond et le trafic
+mensuel qu'il faut pour tenir le seuil.
+
 ## Garde-fous
 
 `config/guardrails.toml`. Valeurs de depart: tous les plafonds a zero, listes

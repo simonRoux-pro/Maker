@@ -37,6 +37,21 @@ def render(cycle: int, summary: dict) -> str:
         for note in run["notes"]:
             lines.append(f"  - note: {note}")
 
+    seuil = summary.get("min_monthly_margin", 0.0)
+    if summary.get("viability"):
+        lines += ["", f"## Viabilite, seuil de {seuil} EUR nets par mois", ""]
+        for row in sorted(summary["viability"], key=lambda r: -(r["ceiling"] or 0)):
+            verdict = "tient le seuil" if row["viable"] else "sous le seuil"
+            besoin = (
+                f"{row['views_needed']} visites par mois suffisent"
+                if row["views_needed"] is not None
+                else "seuil hors d'atteinte"
+            )
+            lines.append(
+                f"- {row['strategy']}: plafond {row['ceiling']:.2f} EUR par mois, "
+                f"{verdict}, {besoin}"
+            )
+
     lines += ["", "## Verdicts", ""]
     for row in summary["analysis"]["strategies"]:
         lines.append(

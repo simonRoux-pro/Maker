@@ -1,0 +1,18 @@
+{
+  "name": "jours-ouvres-france",
+  "version": "1.0.0",
+  "description": "Jours ouvrés, jours ouvrables, jours fériés et calcul d'échéances en droit français. Métropole, Alsace-Moselle et outre-mer. Zéro dépendance.",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": "./index.mjs",
+  "files": ["index.mjs", "README.md", "LICENSE"],
+  "keywords": [
+    "jours-ouvres", "jours-ouvrables", "jours-feries", "france", "delai",
+    "echeance", "date", "business-days", "working-days", "french-holidays",
+    "alsace-moselle", "outre-mer", "paie", "rh", "cpc"
+  ],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "sideEffects": false,
+  "scripts": { "test": "node --test \"test/*.test.mjs\"" }
+}

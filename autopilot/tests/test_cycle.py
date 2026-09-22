@@ -127,3 +127,66 @@ class TestReportCommand(IsolatedCase):
         }
         self.assertEqual(verdicts["hello_revenue"], "observer")
         conn.close()
+
+
+class TestViability(IsolatedCase):
+    """Le seuil de marge minimale doit bloquer, pas decorer."""
+
+    def test_threshold_is_reported_per_strategy(self):
+        summary = cycle.run()
+        self.assertEqual(summary["min_monthly_margin"], 0.0)
+        rows = {r["strategy"]: r for r in summary["viability"]}
+        # les strategies vendeuses savent dire leur plafond
+        self.assertIn("jours_feries_api", rows)
+        self.assertIn("pack_calendrier", rows)
+        # les briques de distribution n'en ont pas
+        self.assertNotIn("outils_web", rows)
+        self.assertNotIn("npm_packages", rows)
+
+    def test_journal_shows_the_threshold(self):
+        from pathlib import Path
+
+        summary = cycle.run()
+        text = Path(summary["journal_path"]).read_text(encoding="utf-8")
+        self.assertIn("Viabilite", text)
+        self.assertIn("visites par mois suffisent", text)
+
+
+class TestBelowThresholdIsKilled(IsolatedCase):
+    """Une strategie qui ne peut pas atteindre le minimum est condamnee."""
+
+    def test_a_ceiling_under_the_minimum_kills(self):
+        from autopilot.config import load
+        from autopilot.ledger import connect
+        from autopilot.orchestrator.analyze import KILL, analyze
+
+        (self.root / "config" / "guardrails.toml").write_text(
+            (self.root / "config" / "guardrails.toml").read_text(encoding="utf-8").replace(
+                "[fees]", "[objectif]\nmin_monthly_margin = 10.0\n\n[fees]"
+            ),
+            encoding="utf-8",
+        )
+        cfg = load()
+        self.assertEqual(cfg.guardrails.min_monthly_margin, 10.0)
+
+        conn = connect()
+        analysis = analyze(conn, cfg, ceilings={"jours_feries_api": 3.0})
+        verdict = next(
+            r for r in analysis["strategies"] if r["strategy"] == "jours_feries_api"
+        )
+        self.assertEqual(verdict["verdict"], KILL)
+        self.assertIn("sous le minimum", verdict["why"])
+        conn.close()
+
+    def test_a_ceiling_above_the_minimum_survives(self):
+        from autopilot.config import load
+        from autopilot.ledger import connect
+        from autopilot.orchestrator.analyze import KILL, analyze
+
+        conn = connect()
+        analysis = analyze(conn, load(), ceilings={"jours_feries_api": 43.0})
+        verdict = next(
+            r for r in analysis["strategies"] if r["strategy"] == "jours_feries_api"
+        )
+        self.assertNotEqual(verdict["verdict"], KILL)
+        conn.close()

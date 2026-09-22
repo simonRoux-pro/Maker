@@ -17,7 +17,7 @@ from datetime import date
 from pathlib import Path
 
 from ...approvals.action import RealAction
-from ..base import Context, Plan, RunResult, Step, Strategy
+from ..base import Context, Plan, RunResult, Step, Strategy, traffic_needed
 from ..manifest import Manifest
 
 MANIFEST = Manifest.load(Path(__file__).with_name("manifest.toml"))
@@ -73,6 +73,29 @@ class PackCalendrier(Strategy):
         fees = ctx.cfg.guardrails.fees if ctx else None
         return project(months, ASSUMPTIONS, fees)
 
+    def monthly_ceiling(self, ctx: Context | None = None) -> float:
+        """Une vente ne se cumule pas d'un mois sur l'autre: le revenu mensuel
+        est stable, donc le premier mois est deja le plafond."""
+        return self.project(1, ctx)[0]["net"]
+
+    def views_needed(self, target: float, ctx: Context | None = None) -> int | None:
+        fees = ctx.cfg.guardrails.fees if ctx else None
+
+        def net_for(views: int) -> float:
+            return project(1, {**ASSUMPTIONS, "page_views_per_month": views}, fees)[0]["net"]
+
+        return traffic_needed(net_for, target)
+
+    def _viability_note(self, ctx: Context) -> str:
+        seuil = ctx.cfg.guardrails.min_monthly_margin
+        besoin = self.views_needed(seuil, ctx)
+        if besoin is None:
+            return f"le modele ne peut pas atteindre {seuil} EUR par mois, a abandonner"
+        return (
+            f"seuil de {seuil} EUR par mois atteint a partir de {besoin} visites "
+            f"mensuelles de la fiche, contre {ASSUMPTIONS['page_views_per_month']} supposees"
+        )
+
     def plan(self, ctx: Context) -> Plan:
         first = self.project(1, ctx)[0]
         listed = self.listed(ctx)
@@ -105,6 +128,7 @@ class PackCalendrier(Strategy):
                 f"prix {ASSUMPTIONS['price_eur']} EUR, commission "
                 f"{ASSUMPTIONS['platform_fee_rate'] * 100:.0f} pourcent",
                 "l'argent arrive sur le PayPal des la transaction",
+                self._viability_note(ctx),
             ],
         )
 

@@ -58,6 +58,9 @@ class Guardrails:
     allowlist: Allowlist
     fees: Fees
     killswitch_file: Path
+    # marge nette mensuelle en dessous de laquelle une strategie ne vaut pas
+    # la peine d'exister
+    min_monthly_margin: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -105,6 +108,7 @@ def load(config_path: Path | None = None, strategies_path: Path | None = None) -
     k = _require(raw, "killswitch", gpath)
     al = raw.get("allowlist", {})
     f = _require(raw, "fees", gpath)
+    objectif = raw.get("objectif", {})
 
     budget = Budget(
         max_total=float(b["max_total"]),
@@ -142,6 +146,7 @@ def load(config_path: Path | None = None, strategies_path: Path | None = None) -
             paypal_fixed=float(f["paypal_fixed"]),
         ),
         killswitch_file=kill_file,
+        min_monthly_margin=float(objectif.get("min_monthly_margin", 0.0)),
     )
 
     strategies: dict[str, StrategyConfig] = {}

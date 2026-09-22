@@ -129,3 +129,24 @@ class Strategy(abc.ABC):
         from ..guardrails import gate
 
         return gate.authorize(ctx.conn, ctx.cfg, action, approval_id=approval_id)
+
+
+def traffic_needed(net_for, target: float, maximum: int = 2_000_000) -> int | None:
+    """Plus petit volume mensuel qui atteint la marge visee.
+
+    net_for(volume) renvoie la marge nette mensuelle pour ce volume. Recherche
+    dichotomique: le modele est monotone croissant, donc la reponse est unique.
+    None quand le seuil est hors d'atteinte, ce qui vaut condamnation.
+    """
+    if target <= 0:
+        return 0
+    if net_for(maximum) < target:
+        return None
+    low, high = 0, maximum
+    while low < high:
+        middle = (low + high) // 2
+        if net_for(middle) >= target:
+            high = middle
+        else:
+            low = middle + 1
+    return low

@@ -56,6 +56,11 @@ budget = {budget}
 enabled = {enabled}
 mode = "{mode}"
 budget = {budget}
+
+[npm_packages]
+enabled = {enabled}
+mode = "{mode}"
+budget = {budget}
 """
 
 

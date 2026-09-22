@@ -132,7 +132,15 @@ def cmd_report(args) -> int:
         name for name, strategy in registry.discover().items()
         if strategy.manifest.kind == "support"
     )
-    verdicts = analyze(conn, cfg, test_only, support)
+    ceilings = {}
+    for name, strategy in registry.discover().items():
+        method = getattr(strategy, "monthly_ceiling", None)
+        if method is not None:
+            try:
+                ceilings[name] = method()
+            except TypeError:
+                ceilings[name] = None
+    verdicts = analyze(conn, cfg, test_only, support, ceilings)
     print("verdicts:")
     for row in verdicts["strategies"]:
         print(f"  {row['strategy']}: {row['verdict']} ({row['why']})")

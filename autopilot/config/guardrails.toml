@@ -25,6 +25,13 @@ file = "data/KILL"
 platforms = []
 apis = []
 
+[objectif]
+# Seuil de viabilite. Une strategie dont le modele ne peut pas atteindre cette
+# marge nette mensuelle n'est pas developpee, et une strategie existante qui
+# passe dessous est tuee. Le seuil ne se contourne pas par une note optimiste:
+# il est compare au plafond du modele, pas a son espoir.
+min_monthly_margin = 10.0
+
 [fees]
 # Frais PayPal appliques aux encaissements, pour que la marge nette soit
 # vraie et pas optimiste.

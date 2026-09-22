@@ -49,3 +49,12 @@ mode = "dry_run"
 budget = 0.0
 # a completer une fois le worker outils cree
 base_url = ""
+
+[npm_packages]
+enabled = true
+mode = "dry_run"
+budget = 0.0
+# passera a true quand NPM_TOKEN sera present dans autopilot/.env
+token_ready = false
+# noms deja publies, separes par des virgules
+published = ""

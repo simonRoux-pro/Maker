@@ -1,0 +1,12 @@
+[strategy]
+name = "npm_packages"
+summary = "Deux bibliotheques publiees sur npm: jours-ouvres-france et identifiants-france. Brique de distribution: elles sont gratuites, elles amenent du trafic vers les APIs hebergees et les pages publiques."
+kind = "support"
+risk = "low"
+estimated_setup_cost = 0.0
+estimated_monthly_cost = 0.0
+platforms = ["npm"]
+apis = []
+needs_operator = [
+  "creer un compte npm et generer un jeton de publication automatisee, puis le poser dans autopilot/.env sous NPM_TOKEN",
+]
