@@ -61,6 +61,11 @@ budget = {budget}
 enabled = {enabled}
 mode = "{mode}"
 budget = {budget}
+
+[facturx_api]
+enabled = {enabled}
+mode = "{mode}"
+budget = {budget}
 """
 
 

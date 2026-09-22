@@ -1,0 +1,12 @@
+{
+  "name": "facturx-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Controle de conformite des factures electroniques francaises, format CII de Factur-X.",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "start": "node server.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}

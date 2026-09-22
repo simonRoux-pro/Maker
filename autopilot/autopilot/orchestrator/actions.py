@@ -96,6 +96,57 @@ BLOCKS = [
         "rendre": ["le lien public View in Hub"],
     },
     {
+        "id": "worker_facturx",
+        "strategy": "facturx_api",
+        "titre": "Deployer l'API facturation electronique sur Cloudflare",
+        "duree": "5 min",
+        "done": lambda o: bool(o.get("base_url")),
+        "liens": [("Tableau de bord Cloudflare", "https://dash.cloudflare.com")],
+        "etapes": [
+            "Workers & Pages, Create, Connect GitHub",
+            "Nom de l'application: facturx",
+            "Depot: simonRoux-pro/Maker",
+            "Branche: claude/autopilot-revenue-system-p8k3o1",
+            "Root directory: autopilot/products/facturx_api",
+            "Build command: vide",
+            "Deploy command: npx wrangler deploy",
+        ],
+        "verif": [
+            "https://facturx.pro-simon-roux.workers.dev/v1/checks"
+            " doit lister les controles exerces",
+        ],
+        "rendre": ["l'URL du worker"],
+    },
+    {
+        "id": "fiche_facturx",
+        "strategy": "facturx_api",
+        "titre": "Publier la fiche facturation electronique, la plus chere des quatre",
+        "duree": "10 min",
+        "done": lambda o: bool(o.get("listing_url")),
+        "depend": "worker_facturx",
+        "liens": [("Rapid Studio", "https://rapidapi.com/studio")],
+        "etapes": [
+            "Add API Project, import OpenAPI par fichier",
+            "Telecharger d'abord la specification:"
+            " https://facturx.pro-simon-roux.workers.dev/openapi.json?download=1",
+            "Categorie: Business",
+            "Paliers: Basic 0 USD / 100, Pro 29 USD / 5000, Ultra 99 USD / 50000,"
+            " Mega 299 USD / 500000, Pro marque Recommended",
+            "Ligne Requests: 100, 5000, 50000, 500000. hard-limit BASIC: 100",
+            "Health Check URL: /health",
+            "Visibility: public, apres les tarifs",
+            "Recuperer le Proxy Secret, le poser en variable de build du worker"
+            " facturx, puis changer la Deploy command en: echo"
+            " \"$RAPIDAPI_PROXY_SECRET\" | npx wrangler secret put"
+            " RAPIDAPI_PROXY_SECRET && npx wrangler deploy",
+        ],
+        "verif": [
+            "https://facturx.pro-simon-roux.workers.dev/health"
+            " doit passer a protected:true",
+        ],
+        "rendre": ["le lien public View in Hub"],
+    },
+    {
         "id": "npm_token",
         "strategy": "npm_packages",
         "titre": "Creer un compte npm et un jeton de publication",
@@ -159,6 +210,39 @@ TEXTES = {
             "or a bank account exists: it validates form, and says so."
         ),
         "Tags": "france, iban, siret, siren, vat, validation, sepa, invoicing, payroll",
+    },
+    "fiche_facturx": {
+        "Nom": "French E-Invoice Compliance Check",
+        "Description courte": (
+            "Validate a French electronic invoice in CII format, the one embedded "
+            "in Factur-X. Mandatory business terms and arithmetic consistency of "
+            "totals, with errors reported in plain French."
+        ),
+        "Description longue": (
+            "Receiving electronic invoices became mandatory in France on "
+            "1 September 2026 for every VAT-registered business. Issuing them "
+            "follows on 1 September 2027 for small and medium companies.\n\n"
+            "This API validates the CII XML that Factur-X embeds:\n\n"
+            "- well-formedness, with DOCTYPE and external entities rejected "
+            "outright, which closes the classic XXE hole in invoice processing\n"
+            "- Factur-X profile detection: MINIMUM, BASIC WL, BASIC, EN 16931, "
+            "EXTENDED\n"
+            "- mandatory business terms: invoice number, issue date, type code, "
+            "currency, seller and buyer identification, VAT registration\n"
+            "- arithmetic consistency, which is where real invoices fail: sum of "
+            "lines against declared line total, taxable base, VAT per rate, grand "
+            "total, and amount due after prepayments\n\n"
+            "Every finding carries its rule code and a sentence stating which "
+            "amount was expected. The exact list of checks performed is published "
+            "on /v1/checks: this API does not claim full EN 16931 coverage, and "
+            "says so.\n\n"
+            "No storage, no database, no external call. An invoice sent here is "
+            "parsed in memory and forgotten."
+        ),
+        "Tags": (
+            "facture-electronique, factur-x, e-invoicing, france, cii, en16931, "
+            "compliance, invoice-validation, tva"
+        ),
     },
     "fiche_pack": {
         "Titre": "Jours feries et jours ouvres France 2026-2035",

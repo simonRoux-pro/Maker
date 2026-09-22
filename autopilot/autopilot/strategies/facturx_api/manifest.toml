@@ -1,0 +1,14 @@
+[strategy]
+name = "facturx_api"
+summary = "Controle de conformite des factures electroniques francaises, format CII de Factur-X. Produit de conformite vendu a des entreprises: l'obligation de reception est entree en vigueur le 1er septembre 2026, celle d'emission pour les PME au 1er septembre 2027."
+kind = "revenue"
+risk = "low"
+estimated_setup_cost = 0.0
+estimated_monthly_cost = 0.0
+platforms = ["rapidapi"]
+apis = ["cloudflare-workers"]
+needs_operator = [
+  "creer un worker Cloudflare nomme facturx, relie a GitHub, repertoire racine products/facturx_api",
+  "publier la fiche sur la marketplace, le compte fournisseur existe deja",
+  "poser le secret RAPIDAPI_PROXY_SECRET en variable de build du nouveau worker",
+]

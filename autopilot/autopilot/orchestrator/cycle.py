@@ -88,17 +88,21 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
         except TypeError:
             ceilings[name] = method(ctx)
         besoin = None
+        ambition = None
         views = getattr(strategy, "views_needed", None)
         if views is not None:
             try:
                 besoin = views(seuil)
+                ambition = views(cfg.guardrails.target_monthly_margin)
             except TypeError:
                 besoin = views(seuil, ctx)
+                ambition = views(cfg.guardrails.target_monthly_margin, ctx)
         viability.append(
             {
                 "strategy": name,
                 "ceiling": ceilings[name],
                 "views_needed": besoin,
+                "views_for_target": ambition,
                 "viable": ceilings[name] is not None and ceilings[name] >= seuil,
             }
         )
@@ -118,6 +122,7 @@ def run(cfg: Config | None = None, *, day: str | None = None) -> dict:
         "operator_tasks": operator_tasks,
         "viability": viability,
         "min_monthly_margin": seuil,
+        "target_monthly_margin": cfg.guardrails.target_monthly_margin,
         "killswitch": killswitch.is_active(conn, cfg.guardrails),
     }
 

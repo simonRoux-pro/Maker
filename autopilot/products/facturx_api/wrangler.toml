@@ -1,0 +1,13 @@
+# Deploiement Cloudflare Workers. Aucun secret ici.
+#
+# name doit etre identique au nom de l'application Cloudflare qui lance le
+# build. Le secret de la marketplace se pose en variable de build, la commande
+# de deploiement le recopie en secret d'execution.
+
+name = "facturx"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[observability]
+enabled = true

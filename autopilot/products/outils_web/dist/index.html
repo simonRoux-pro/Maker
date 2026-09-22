@@ -36,8 +36,9 @@ a{color:var(--accent)}
 padding:18px;margin:24px 0 8px}
 form{display:grid;gap:14px}
 label{display:grid;gap:6px;font-size:14px;color:var(--muted)}
-input,select{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);
+input,select,textarea{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);
 background:var(--bg);color:var(--ink);width:100%}
+textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;resize:vertical}
 button{font:inherit;font-weight:600;padding:11px 18px;border-radius:8px;border:0;
 background:var(--accent);color:#fff;cursor:pointer}
 .hint{font-size:13px;color:var(--muted);margin:0}
@@ -64,7 +65,7 @@ font-size:14px;color:var(--muted)}
 <body>
 <header><div class="wrap">
   <a class="brand" href="/">Jours ouvrés, délais et identifiants</a>
-  <nav><a href="/jours-ouvres">jours ouvres</a><a href="/delai">delai</a><a href="/jours-feries">jours feries</a><a href="/nir">nir</a><a href="/tva">tva</a><a href="/iban">iban</a><a href="/siret">siret</a><a href="/rib">rib</a></nav>
+  <nav><a href="/jours-ouvres">jours ouvres</a><a href="/delai">delai</a><a href="/jours-feries">jours feries</a><a href="/facture-electronique">facture electronique</a><a href="/nir">nir</a><a href="/tva">tva</a><a href="/iban">iban</a><a href="/siret">siret</a><a href="/rib">rib</a></nav>
 </div></header>
 <main class="wrap">
 
@@ -89,6 +90,8 @@ calcul se fait dans votre navigateur.</p>
     <span>Clé de contrôle sur 97, Corse comprise.</span></a>
   <a class="card" href="/tva"><strong>Calcul de TVA</strong>
     <span>HT vers TTC, TTC vers HT, aux quatre taux français.</span></a>
+  <a class="card" href="/facture-electronique"><strong>Vérifier une facture électronique</strong>
+    <span>Contrôle de conformité Factur-X, obligatoire depuis septembre 2026.</span></a>
 </div>
 
 <h2>Pourquoi ces outils existent</h2>

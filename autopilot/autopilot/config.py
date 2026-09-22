@@ -61,6 +61,8 @@ class Guardrails:
     # marge nette mensuelle en dessous de laquelle une strategie ne vaut pas
     # la peine d'exister
     min_monthly_margin: float = 0.0
+    # objectif vise, sans effet bloquant
+    target_monthly_margin: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -147,6 +149,7 @@ def load(config_path: Path | None = None, strategies_path: Path | None = None) -
         ),
         killswitch_file=kill_file,
         min_monthly_margin=float(objectif.get("min_monthly_margin", 0.0)),
+        target_monthly_margin=float(objectif.get("target_monthly_margin", 0.0)),
     )
 
     strategies: dict[str, StrategyConfig] = {}

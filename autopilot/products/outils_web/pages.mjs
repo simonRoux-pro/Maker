@@ -47,6 +47,8 @@ calcul se fait dans votre navigateur.</p>
     <span>Clé de contrôle sur 97, Corse comprise.</span></a>
   <a class="card" href="/tva"><strong>Calcul de TVA</strong>
     <span>HT vers TTC, TTC vers HT, aux quatre taux français.</span></a>
+  <a class="card" href="/facture-electronique"><strong>Vérifier une facture électronique</strong>
+    <span>Contrôle de conformité Factur-X, obligatoire depuis septembre 2026.</span></a>
 </div>
 
 <h2>Pourquoi ces outils existent</h2>
@@ -148,6 +150,52 @@ et le 20 décembre à La Réunion.</p>
 <p>Le 8 mai n'est férié sans interruption que depuis la loi du 2 octobre 1981.
 Avant 1982, un calcul automatique donnerait un résultat faux : nous préférons
 refuser de répondre.</p>
+`,
+  },
+  {
+    path: "/facture-electronique",
+    slug: "facture-electronique",
+    title: "Vérifier une facture électronique Factur-X gratuitement",
+    description:
+      "Contrôler la conformité d'une facture électronique au format CII de Factur-X : mentions obligatoires et cohérence des totaux. Gratuit, sans inscription, la facture ne quitte pas votre navigateur.",
+    engine: "facturx",
+    body: `
+<h1>Vérifier une facture électronique</h1>
+<p class="lead">Collez le XML de votre facture. Le contrôle se fait dans votre
+navigateur : elle ne part sur aucun serveur et n'est enregistrée nulle part.</p>
+
+<div class="tool" id="tool"></div>
+
+<h2>Depuis quand est-ce obligatoire</h2>
+<p>Depuis le <strong>1er septembre 2026</strong>, toute entreprise établie en
+France et assujettie à la TVA doit être en mesure de <strong>recevoir</strong>
+une facture électronique. Aucune exception, y compris pour les entreprises en
+franchise en base.</p>
+<p>L'obligation d'<strong>émettre</strong> s'applique depuis la même date aux
+grandes entreprises et aux entreprises de taille intermédiaire, et à partir du
+<strong>1er septembre 2027</strong> aux PME, TPE et micro-entreprises.</p>
+
+<h2>Ce qu'est une facture électronique, au sens de la loi</h2>
+<p>Un PDF envoyé par courriel n'en est pas une. Il faut un format structuré,
+lisible par une machine : Factur-X, UBL 2.1 ou CII. Factur-X est le format
+recommandé, un PDF/A-3 qui embarque le même contenu en XML au format CII.
+Le lecteur humain voit un PDF normal, le logiciel lit le XML.</p>
+
+<h2>Ce que cet outil contrôle</h2>
+<p>Il vérifie que le document est bien formé, identifie le profil Factur-X
+déclaré, contrôle la présence des mentions obligatoires, et surtout
+<strong>recalcule les totaux</strong>. C'est là que les factures réelles
+échouent : somme des lignes qui ne correspond pas au total déclaré, TVA
+incohérente avec son taux, net à payer qui ne tombe pas juste après déduction
+d'un acompte.</p>
+<p>Chaque anomalie est rendue avec son code de règle et une phrase en français
+qui dit quel montant était attendu.</p>
+
+<h2>Ce qu'il ne contrôle pas</h2>
+<p>Il ne couvre pas l'intégralité des règles de la norme EN 16931, et il ne le
+prétend pas : la liste exacte des contrôles exercés est affichée avec le
+résultat. Il ne vérifie pas non plus la structure du PDF lui-même, seulement
+le XML qu'il contient.</p>
 `,
   },
   {

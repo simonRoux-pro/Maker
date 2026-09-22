@@ -58,3 +58,11 @@ budget = 0.0
 token_ready = false
 # noms deja publies, separes par des virgules
 published = ""
+
+[facturx_api]
+enabled = true
+mode = "dry_run"
+budget = 0.0
+base_url = ""
+listing_url = ""
+proxy_secret_set = false

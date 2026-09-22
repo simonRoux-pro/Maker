@@ -21,9 +21,38 @@ const DIST = join(here, "dist");
 const BASE = process.env.BASE_URL ?? "https://outils.pro-simon-roux.workers.dev";
 
 /** Les moteurs sont des modules ES: dans une page, ils s'inlinent tels quels. */
+/**
+ * Le moteur Factur-X tient en deux fichiers: l'analyseur XML et les regles.
+ * On les concatene en retirant l'import, comme pour le bundle des workers.
+ */
+function facturx() {
+  const xml = readFileSync(join(here, "..", "facturx_api", "xml.mjs"), "utf8");
+  const rules = readFileSync(join(here, "..", "facturx_api", "engine.mjs"), "utf8");
+  let stripped = rules.replace(
+    /^import\s*\{[\s\S]*?\}\s*from\s*"\.\/xml\.mjs";\n/m,
+    "",
+  );
+  if (stripped === rules) throw new Error("import de xml.mjs introuvable dans engine.mjs");
+
+  // engine.mjs re-exporte XmlError pour ses appelants; une fois concatene avec
+  // xml.mjs qui l'exporte deja, le module a deux exports du meme nom et le
+  // navigateur refuse la page entiere
+  stripped = stripped.replace(/^export \{ XmlError \};\n/m, "");
+
+  const merged = `${xml}\n${stripped}`;
+  const exported = [...merged.matchAll(/^export (?:class|function|const) (\w+)/gm)]
+    .map((m) => m[1]);
+  const duplicates = exported.filter((n, i) => exported.indexOf(n) !== i);
+  if (duplicates.length) {
+    throw new Error(`exports en double apres concatenation: ${duplicates.join(", ")}`);
+  }
+  return merged;
+}
+
 const ENGINES = {
   holidays: readFileSync(join(here, "..", "jours_feries_api", "engine.mjs"), "utf8"),
   identifiers: readFileSync(join(here, "..", "identifiants_api", "engine.mjs"), "utf8"),
+  facturx: facturx(),
 };
 
 const CSS = `
@@ -52,8 +81,9 @@ a{color:var(--accent)}
 padding:18px;margin:24px 0 8px}
 form{display:grid;gap:14px}
 label{display:grid;gap:6px;font-size:14px;color:var(--muted)}
-input,select{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);
+input,select,textarea{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);
 background:var(--bg);color:var(--ink);width:100%}
+textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;resize:vertical}
 button{font:inherit;font-weight:600;padding:11px 18px;border-radius:8px;border:0;
 background:var(--accent);color:#fff;cursor:pointer}
 .hint{font-size:13px;color:var(--muted);margin:0}

@@ -31,6 +31,9 @@ apis = []
 # passe dessous est tuee. Le seuil ne se contourne pas par une note optimiste:
 # il est compare au plafond du modele, pas a son espoir.
 min_monthly_margin = 10.0
+# Objectif vise. Il ne bloque rien, il sert a chiffrer le trafic qu'il
+# faudrait pour l'atteindre, strategie par strategie.
+target_monthly_margin = 5000.0
 
 [fees]
 # Frais PayPal appliques aux encaissements, pour que la marge nette soit

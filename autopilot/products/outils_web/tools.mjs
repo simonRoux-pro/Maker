@@ -186,6 +186,46 @@ $("#f").addEventListener("submit", guard((d) => {
 }));`,
   },
 
+  "facture-electronique": {
+    html: `
+<form id="f">
+  <label>XML de la facture, au format CII
+    <textarea name="xml" rows="8" required spellcheck="false"
+      placeholder="&lt;rsm:CrossIndustryInvoice ..."></textarea></label>
+  <label>ou choisissez un fichier
+    <input type="file" name="fichier" accept=".xml,text/xml,application/xml"></label>
+  <button type="submit">Vérifier</button>
+</form>
+<output id="out" aria-live="polite"></output>`,
+    script: `${HELPERS}
+$("[name=fichier]").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (file) $("[name=xml]").value = await file.text();
+});
+$("#f").addEventListener("submit", guard((d) => {
+  const r = validate(d.get("xml"));
+  const liste = (items, titre) => items.length
+    ? "<p><strong>" + titre + "</strong></p><table>" + items.map((i) =>
+        "<tr><td>" + esc(i.message) + "</td><td>" + esc(i.code) + "</td></tr>").join("") + "</table>"
+    : "";
+  if (!r.readable) return ko("<strong>Document illisible</strong>" + liste(r.errors, "Cause"));
+  const entete = r.invoice
+    ? "<p>Facture " + esc(r.invoice.number || "sans numéro") +
+      (r.invoice.issue_date ? " du " + fr(r.invoice.issue_date) : "") +
+      (r.profile ? ", profil " + esc(r.profile) : "") + "</p>"
+    : "";
+  const pied = '<p class="hint">' + r.checks_performed + " contrôles exercés. " +
+    esc(r.scope) + "</p>";
+  if (r.valid) {
+    ok("<strong>Facture conforme</strong>" + entete +
+      liste(r.warnings, "Avertissements") + pied);
+  } else {
+    ko("<strong>" + r.errors.length + " anomalie(s)</strong>" + entete +
+      liste(r.errors, "Erreurs") + liste(r.warnings, "Avertissements") + pied);
+  }
+}));`,
+  },
+
   nir: {
     html: FORM(`
   <label>Numéro de sécurité sociale<input type="text" name="nir"

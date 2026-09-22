@@ -51,6 +51,16 @@ def render(cycle: int, summary: dict) -> str:
                 f"- {row['strategy']}: plafond {row['ceiling']:.2f} EUR par mois, "
                 f"{verdict}, {besoin}"
             )
+            cible = summary.get("target_monthly_margin", 0.0)
+            if cible and row.get("views_for_target") is not None:
+                lines.append(
+                    f"  - pour {cible:.0f} EUR par mois il faudrait "
+                    f"{row['views_for_target']} visites mensuelles"
+                )
+            elif cible:
+                lines.append(
+                    f"  - {cible:.0f} EUR par mois sont hors d'atteinte avec ce modele"
+                )
 
     lines += ["", "## Verdicts", ""]
     for row in summary["analysis"]["strategies"]:
