@@ -1,0 +1,71 @@
+# Tests de tout le depot Autopilot, a chaque poussee.
+#
+# Aucun secret, aucun acces sortant particulier: ce workflow sert de preuve
+# que la chaine fonctionne, avant meme qu'un deploiement soit possible.
+
+name: tests
+
+on:
+  push:
+    paths:
+      - 'autopilot/**'
+      - '.github/workflows/tests.yml'
+  workflow_dispatch:
+
+jobs:
+  produits:
+    name: produits javascript
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        produit:
+          - jours_feries_api
+          - identifiants_api
+          - facturx_api
+          - pack_calendrier
+          - outils_web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: tests
+        working-directory: autopilot/products/${{ matrix.produit }}
+        run: npm test
+
+  paquets:
+    name: paquets npm
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        paquet: [jours-ouvres-france, identifiants-france]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: assembler depuis les moteurs
+        working-directory: autopilot/products/npm
+        run: node build.mjs
+      - name: verifier que la copie est a jour
+        run: git diff --exit-code autopilot/products/npm
+      - name: tests
+        working-directory: autopilot/products/npm/${{ matrix.paquet }}
+        run: npm test
+
+  systeme:
+    name: systeme python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: tests
+        working-directory: autopilot
+        run: python3 -m unittest discover -s tests -t tests
+      - name: un cycle complet doit passer
+        working-directory: autopilot
+        run: python3 -m autopilot.cli cycle
