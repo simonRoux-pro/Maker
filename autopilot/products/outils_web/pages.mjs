@@ -51,6 +51,14 @@ calcul se fait dans votre navigateur.</p>
     <span>Contrôle de conformité Factur-X, obligatoire depuis septembre 2026.</span></a>
 </div>
 
+<h2>Comprendre</h2>
+<div class="cards">
+  <a class="card" href="/calendrier-facture-electronique"><strong>Calendrier de la réforme</strong>
+    <span>Qui doit faire quoi, et à partir de quand.</span></a>
+  <a class="card" href="/factur-x"><strong>Factur-X, concrètement</strong>
+    <span>Ce que contient le fichier, et comment le lire.</span></a>
+</div>
+
 <h2>Pourquoi ces outils existent</h2>
 <p>Ces calculs ont l'air simples et ne le sont pas. Un délai d'un jour à
 partir du 7 mai 2026 n'échoit pas le 8 mai : le 8 mai est férié, donc
@@ -196,6 +204,99 @@ qui dit quel montant était attendu.</p>
 prétend pas : la liste exacte des contrôles exercés est affichée avec le
 résultat. Il ne vérifie pas non plus la structure du PDF lui-même, seulement
 le XML qu'il contient.</p>
+`,
+  },
+  {
+    path: "/calendrier-facture-electronique",
+    slug: "calendrier-facture-electronique",
+    title: "Calendrier de la facturation électronique obligatoire 2026-2027",
+    description:
+      "Qui doit recevoir et émettre des factures électroniques, et à partir de quelle date. Le calendrier complet de la réforme française, grandes entreprises, ETI, PME, TPE et micro-entreprises.",
+    engine: null,
+    body: `
+<h1>Calendrier de la facturation électronique</h1>
+<p class="lead">Deux obligations distinctes, deux dates différentes. Les
+confondre est l'erreur la plus fréquente.</p>
+
+<h2>Recevoir : c'est déjà obligatoire</h2>
+<p>Depuis le <strong>1er septembre 2026</strong>, toute entreprise établie en
+France et assujettie à la TVA doit être en mesure de <strong>recevoir</strong>
+une facture électronique. Sans exception, y compris pour les entreprises en
+franchise en base de TVA.</p>
+<p>Concrètement, cela veut dire qu'un fournisseur peut vous adresser une
+facture au format structuré, et que vous devez pouvoir la traiter. Si vous
+n'êtes raccordé à rien, vous ne la recevez pas.</p>
+
+<h2>Émettre : cela dépend de votre taille</h2>
+<p>L'obligation d'<strong>émettre</strong> est échelonnée.</p>
+<p><strong>Depuis le 1er septembre 2026</strong> pour les grandes entreprises
+et les entreprises de taille intermédiaire.</p>
+<p><strong>À partir du 1er septembre 2027</strong> pour les petites et
+moyennes entreprises, les très petites entreprises et les
+micro-entreprises.</p>
+
+<h2>Ce qui compte comme facture électronique</h2>
+<p>Un PDF envoyé par courriel n'en est pas une. La loi exige un format
+structuré, lisible par une machine, transmis par une plateforme. Trois formats
+sont acceptés : <a href="/factur-x">Factur-X</a>, UBL 2.1 et CII.</p>
+<p>Factur-X est le format recommandé parce qu'il est hybride : un PDF que
+l'humain lit normalement, avec le même contenu en XML à l'intérieur pour les
+logiciels.</p>
+
+<h2>Ce que cela change en pratique</h2>
+<p>Les mentions de vos factures sont désormais contrôlées automatiquement par
+la machine qui les reçoit. Une somme de lignes qui ne correspond pas au total
+déclaré, une TVA incohérente avec son taux, un net à payer faux après
+déduction d'un acompte : ces erreurs passaient inaperçues sur un PDF, elles
+provoquent maintenant un rejet.</p>
+<p>Vous pouvez <a href="/facture-electronique">vérifier gratuitement une
+facture</a> avant de l'envoyer. Le contrôle se fait dans votre navigateur, la
+facture ne part nulle part.</p>
+`,
+  },
+  {
+    path: "/factur-x",
+    slug: "factur-x",
+    title: "Factur-X : ce que contient le fichier et comment le lire",
+    description:
+      "Comprendre le format Factur-X : un PDF/A-3 qui embarque un XML au format CII. Les cinq profils, ce que chacun contient, et comment vérifier lequel vous utilisez.",
+    engine: null,
+    body: `
+<h1>Factur-X, concrètement</h1>
+<p class="lead">Un seul fichier qui sert deux lecteurs : un humain qui voit un
+PDF, un logiciel qui lit du XML.</p>
+
+<h2>Un PDF avec du XML dedans</h2>
+<p>Un fichier Factur-X est un PDF/A-3, c'est-à-dire un PDF capable de
+transporter des pièces jointes. La pièce jointe est un fichier XML au format
+CII qui contient exactement les mêmes données que la page imprimée.</p>
+<p>L'intérêt est qu'aucune des deux parties ne perd quoi que ce soit. Votre
+client ouvre le PDF et lit une facture normale. Son logiciel comptable lit le
+XML et intègre les montants sans ressaisie.</p>
+
+<h2>Les cinq profils</h2>
+<p>Factur-X existe en cinq niveaux de richesse, du plus pauvre au plus
+complet.</p>
+<p><strong>MINIMUM</strong> ne contient que les données d'en-tête, sans le
+détail des lignes. <strong>BASIC WL</strong> ajoute des informations de
+règlement mais toujours sans lignes. <strong>BASIC</strong> introduit les
+lignes de détail simplifiées. <strong>EN 16931</strong> couvre le socle
+européen complet. <strong>EXTENDED</strong> ajoute les extensions
+franco-allemandes.</p>
+<p>Le profil se déclare dans le XML, dans un identifiant qui ressemble à
+<code>urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic</code>. Le
+nom du profil est dans le <strong>dernier segment</strong>, après le dernier
+dièse. Beaucoup d'outils se trompent en cherchant le nom dans l'URN entière,
+ce qui leur fait voir EN 16931 partout puisque toutes les URN commencent
+ainsi.</p>
+
+<h2>Comment savoir ce que contient votre facture</h2>
+<p>Extrayez le XML de votre PDF, puis collez-le dans notre
+<a href="/facture-electronique">vérificateur gratuit</a>. Il vous dira quel
+profil est déclaré, si les mentions obligatoires sont présentes, et surtout si
+vos totaux tombent juste.</p>
+<p>Pour savoir qui est concerné et depuis quand, voyez le
+<a href="/calendrier-facture-electronique">calendrier de la réforme</a>.</p>
 `,
   },
   {

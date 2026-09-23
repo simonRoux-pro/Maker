@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Calcul de jours ouvrés, de délais et vérification d'identifiants</title>
-<meta name="description" content="Outils gratuits de calcul français : jours ouvrés entre deux dates, échéance d'un délai avec report légal, jours fériés par zone, vérification d'IBAN, de SIREN, de SIRET et de TVA.">
-<link rel="canonical" href="https://outils.pro-simon-roux.workers.dev/">
+<title>Factur-X : ce que contient le fichier et comment le lire</title>
+<meta name="description" content="Comprendre le format Factur-X : un PDF/A-3 qui embarque un XML au format CII. Les cinq profils, ce que chacun contient, et comment vérifier lequel vous utilisez.">
+<link rel="canonical" href="https://outils.pro-simon-roux.workers.dev/factur-x">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%231b4fd8%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%2217%22%20rx%3D%222%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%229%22%20width%3D%2220%22%20height%3D%225%22%20fill%3D%22%230f2f8a%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%221%22%20fill%3D%22%231b4fd8%22%2F%3E%3C%2Fsvg%3E">
-<meta property="og:title" content="Calcul de jours ouvrés, de délais et vérification d'identifiants">
-<meta property="og:description" content="Outils gratuits de calcul français : jours ouvrés entre deux dates, échéance d'un délai avec report légal, jours fériés par zone, vérification d'IBAN, de SIREN, de SIRET et de TVA.">
+<meta property="og:title" content="Factur-X : ce que contient le fichier et comment le lire">
+<meta property="og:description" content="Comprendre le format Factur-X : un PDF/A-3 qui embarque un XML au format CII. Les cinq profils, ce que chacun contient, et comment vérifier lequel vous utilisez.">
 <meta property="og:type" content="website">
 <style>
 :root{--bg:#fbfbfc;--panel:#fff;--ink:#16181d;--muted:#5f6672;--line:#e4e7eb;
@@ -69,46 +69,41 @@ font-size:14px;color:var(--muted)}
 </div></header>
 <main class="wrap">
 
-<h1>Des calculs français qui tombent juste</h1>
-<p class="lead">Six outils, aucune inscription, aucune donnée envoyée. Tout le
-calcul se fait dans votre navigateur.</p>
+<h1>Factur-X, concrètement</h1>
+<p class="lead">Un seul fichier qui sert deux lecteurs : un humain qui voit un
+PDF, un logiciel qui lit du XML.</p>
 
-<div class="cards">
-  <a class="card" href="/jours-ouvres"><strong>Jours ouvrés entre deux dates</strong>
-    <span>Compter, ou ajouter un nombre de jours ouvrés à une date.</span></a>
-  <a class="card" href="/delai"><strong>Échéance d'un délai</strong>
-    <span>Avec report au premier jour ouvrable, article 642 du CPC.</span></a>
-  <a class="card" href="/jours-feries"><strong>Jours fériés</strong>
-    <span>Métropole, Alsace-Moselle et outre-mer, de 1982 à 2100.</span></a>
-  <a class="card" href="/iban"><strong>Vérifier un IBAN</strong>
-    <span>Clé de contrôle et longueur, 37 pays de la zone SEPA.</span></a>
-  <a class="card" href="/siret"><strong>SIREN, SIRET et TVA</strong>
-    <span>Clé de Luhn, exception La Poste, numéro de TVA français.</span></a>
-  <a class="card" href="/rib"><strong>Clé RIB</strong>
-    <span>Calculer ou vérifier la clé d'un relevé d'identité bancaire.</span></a>
-  <a class="card" href="/nir"><strong>Numéro de sécurité sociale</strong>
-    <span>Clé de contrôle sur 97, Corse comprise.</span></a>
-  <a class="card" href="/tva"><strong>Calcul de TVA</strong>
-    <span>HT vers TTC, TTC vers HT, aux quatre taux français.</span></a>
-  <a class="card" href="/facture-electronique"><strong>Vérifier une facture électronique</strong>
-    <span>Contrôle de conformité Factur-X, obligatoire depuis septembre 2026.</span></a>
-</div>
+<h2>Un PDF avec du XML dedans</h2>
+<p>Un fichier Factur-X est un PDF/A-3, c'est-à-dire un PDF capable de
+transporter des pièces jointes. La pièce jointe est un fichier XML au format
+CII qui contient exactement les mêmes données que la page imprimée.</p>
+<p>L'intérêt est qu'aucune des deux parties ne perd quoi que ce soit. Votre
+client ouvre le PDF et lit une facture normale. Son logiciel comptable lit le
+XML et intègre les montants sans ressaisie.</p>
 
-<h2>Comprendre</h2>
-<div class="cards">
-  <a class="card" href="/calendrier-facture-electronique"><strong>Calendrier de la réforme</strong>
-    <span>Qui doit faire quoi, et à partir de quand.</span></a>
-  <a class="card" href="/factur-x"><strong>Factur-X, concrètement</strong>
-    <span>Ce que contient le fichier, et comment le lire.</span></a>
-</div>
+<h2>Les cinq profils</h2>
+<p>Factur-X existe en cinq niveaux de richesse, du plus pauvre au plus
+complet.</p>
+<p><strong>MINIMUM</strong> ne contient que les données d'en-tête, sans le
+détail des lignes. <strong>BASIC WL</strong> ajoute des informations de
+règlement mais toujours sans lignes. <strong>BASIC</strong> introduit les
+lignes de détail simplifiées. <strong>EN 16931</strong> couvre le socle
+européen complet. <strong>EXTENDED</strong> ajoute les extensions
+franco-allemandes.</p>
+<p>Le profil se déclare dans le XML, dans un identifiant qui ressemble à
+<code>urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic</code>. Le
+nom du profil est dans le <strong>dernier segment</strong>, après le dernier
+dièse. Beaucoup d'outils se trompent en cherchant le nom dans l'URN entière,
+ce qui leur fait voir EN 16931 partout puisque toutes les URN commencent
+ainsi.</p>
 
-<h2>Pourquoi ces outils existent</h2>
-<p>Ces calculs ont l'air simples et ne le sont pas. Un délai d'un jour à
-partir du 7 mai 2026 n'échoit pas le 8 mai : le 8 mai est férié, donc
-l'échéance glisse au lundi 11. Les SIRET de La Poste échouent au contrôle de
-Luhn que tout le monde applique. La clé d'un RIB convertit la lettre S en 2 et
-non en 1. Chacune de ces règles est une source d'erreur banale dans un
-logiciel de facturation ou de paie.</p>
+<h2>Comment savoir ce que contient votre facture</h2>
+<p>Extrayez le XML de votre PDF, puis collez-le dans notre
+<a href="/facture-electronique">vérificateur gratuit</a>. Il vous dira quel
+profil est déclaré, si les mentions obligatoires sont présentes, et surtout si
+vos totaux tombent juste.</p>
+<p>Pour savoir qui est concerné et depuis quand, voyez le
+<a href="/calendrier-facture-electronique">calendrier de la réforme</a>.</p>
 
 <footer>
 <h2>Les mêmes calculs, ailleurs</h2>

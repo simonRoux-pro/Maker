@@ -34,8 +34,14 @@ PACKAGES = [
     {
         "name": "identifiants-france",
         "version": "1.0.0",
-        "cible": "IBAN, RIB, SIREN, SIRET, TVA",
+        "cible": "IBAN, RIB, SIREN, SIRET, TVA, NIR",
         "note": "nom libre au moment de la verification",
+    },
+    {
+        "name": "facturx-validator",
+        "version": "1.0.0",
+        "cible": "conformite des factures electroniques",
+        "note": "sujet le plus cherche des trois, l'obligation est entree en vigueur",
     },
 ]
 

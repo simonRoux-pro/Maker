@@ -25,12 +25,17 @@ MANIFEST = Manifest.load(Path(__file__).with_name("manifest.toml"))
 PRODUCT_DIR = "products/outils_web"
 
 PAGES = [
+    ("/facture-electronique", "vérifier une facture électronique"),
+    ("/calendrier-facture-electronique", "calendrier de la réforme"),
+    ("/factur-x", "comprendre le format Factur-X"),
     ("/jours-ouvres", "jours ouvrés entre deux dates"),
     ("/delai", "échéance d'un délai, report article 642"),
     ("/jours-feries", "jours fériés par année et par zone"),
     ("/iban", "vérification d'IBAN"),
     ("/siret", "SIREN, SIRET et TVA"),
     ("/rib", "clé RIB"),
+    ("/nir", "numéro de sécurité sociale"),
+    ("/tva", "calcul de TVA"),
 ]
 
 

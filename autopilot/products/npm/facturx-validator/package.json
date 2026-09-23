@@ -1,0 +1,18 @@
+{
+  "name": "facturx-validator",
+  "version": "1.0.0",
+  "description": "Valider une facture électronique française au format CII de Factur-X : mentions obligatoires et cohérence arithmétique des totaux. Zéro dépendance, analyseur XML qui refuse les entités externes.",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": "./index.mjs",
+  "files": ["index.mjs", "README.md", "LICENSE"],
+  "keywords": [
+    "facture-electronique", "factur-x", "facturx", "e-invoicing", "cii",
+    "en16931", "france", "conformite", "invoice", "validation", "xml",
+    "chorus-pro", "tva", "comptabilite"
+  ],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "sideEffects": false,
+  "scripts": { "test": "node --test \"test/*.test.mjs\"" }
+}

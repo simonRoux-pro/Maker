@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        paquet: [jours-ouvres-france, identifiants-france]
+        paquet: [jours-ouvres-france, identifiants-france, facturx-validator]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
